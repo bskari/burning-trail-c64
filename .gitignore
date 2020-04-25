@@ -1,0 +1,7 @@
+assembler
+tools
+debug-commands.txt
+*.sym
+*.prg
+*.vs
+graphics/*.raw
