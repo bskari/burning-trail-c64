@@ -1,70 +1,54 @@
-.const GAME_STATE_MAIN_MENU = 1
+#importonce
+#import "main_menu_state.asm"
 
-namespace GameState {
+.const GAME_STATE_MAIN_MENU = 0
 
-_load_state_routines:
-    .word $0  // Value deliberately left empty
-    .word _load_main_menu
+.namespace GameState {
 
-_tick_state_routines:
-    .word $0  // Value deliberately left empty
-    .word _tick_main_menu
+// **** Constants ****
+_initialize_subroutine_table:
+    .word MainMenuState.initialize
+_tick_subroutine_table:
+    .word MainMenuState.tick
 
-// Prepares to load a new state, including loading new graphics, etc. State
-// passed in in A.
-_load_state:
+// **** Variables ****
+_state: .byte GAME_STATE_MAIN_MENU
+_need_to_initialize_new_state: .byte 1
+
+// **** Subroutines ****
+
+// Initializes a new state, including loading new graphics, etc.
+_initialize_state: {
+    lda _state
     asl
     tax
-    lda _load_state_routines, x
-    sta _address
-    lda _states + 1, x
-    sta _address + 1
-    .byte $20  // JSR
-_address:
-    .word $0
-    rts
+    lda _initialize_subroutine_table, x
+    sta ZEROPAGE_POINTER_1
+    lda _initialize_subroutine_table + 1, x
+    sta ZEROPAGE_POINTER_1 + 1
+    jmp (ZEROPAGE_POINTER_1)
+    // No rts here because the subroutine will do it
 }
 
 
-// Runs a frame of the current state. State passed in in A. Returns non-zero in
-// A if the state should be changed.
-tick_state: {
-    asl
-    tax
-    lda _states, x
-    sta _address
-    lda _states + 1, x
-    sta _address + 1
-    .byte $20  // JSR
-_address:
-    .word $0  // placeholder
-    rts
-}
-
-_load_main_menu: {
-    // Wipe the screen
+// Runs a frame of the current state. Loads a state if necessary.
+tick: {
+    lda _need_to_initialize_new_state
+    beq continue
+    jsr _initialize_state
     lda #0
-    ldx #251
-repeat:
-    dex
-    sta SCREEN_CHAR, x
-    sta SCREEN_CHAR + 250, x
-    sta SCREEN_CHAR + 500, x
-    sta SCREEN_CHAR + 750, x
-    bne repeat
+    sta _need_to_initialize_new_state
 
-    // Load some text
-
-main_text_1:
-    .text "You may:"
-main_text_2:
-    .text "1. Enter the gate"
-main_text_3
-    .text "2. Learn about the gate"
-main_text_
-}
-
-_tick_main_menu: {
+continue:
+    lda _state
+    asl
+    tax
+    lda _tick_subroutine_table, x
+    sta ZEROPAGE_POINTER_1
+    lda _tick_subroutine_table + 1, x
+    sta ZEROPAGE_POINTER_1 + 1
+    jmp (ZEROPAGE_POINTER_1)
+    // No rts here because the subroutine will do it
 }
 
 }

@@ -5,11 +5,14 @@
 sources = \
   src/main/constants.asm \
   src/main/functions.asm \
+  src/main/game_state.asm \
+  src/main/macros.asm \
   src/main/main.asm \
+  src/main/main_menu_state.asm \
   ;
 
 .PHONY: all
-all: src/main/main.prg src/test/test.prg
+all: src/main/main.prg #src/test/test.prg
 
 src/main/main.prg: $(sources)
 	java -jar assembler/KickAss.jar src/main/main.asm
