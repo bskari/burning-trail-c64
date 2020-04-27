@@ -42,6 +42,9 @@ main: {
 
     cli
 
+    // One time, we need to initialize the state
+    jsr GameState._initialize_state
+
 loop:
     jmp loop
 }
@@ -63,16 +66,9 @@ irq: {
     stx BORDER_COLOR
     stx BACKGROUND_COLOR
 
-    lda #' '
-    ldx #251
-clear:
-    dex
-    sta DEFAULT_SCREEN_MEMORY, x
-    sta DEFAULT_SCREEN_MEMORY + 250, x
-    sta DEFAULT_SCREEN_MEMORY + 250, x
-    sta DEFAULT_SCREEN_MEMORY + 250, x
-    bne clear
+    jsr clear_screen
 }
 
+#import "functions.asm"
 #import "game_state.asm"
 #import "main_menu_state.asm"

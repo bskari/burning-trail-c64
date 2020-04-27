@@ -5,6 +5,7 @@
 // ZEROPAGE_POINTER_1 = src
 // ZEROPAGE_POINTER_2 = dest
 // PARAM_1 + PARAM_2 = number of bytes to move
+/*
 move_memory: {
     ldy #0
     ldx PARAM_1
@@ -35,7 +36,9 @@ move_3:
 done:
     rts
 }
+*/
 
+/*
 wait_frame: {
     lda RASTER_LINE
     cmp 248
@@ -47,5 +50,19 @@ wait_step_2:
     lda RASTER_LINE
     cmp 248
     bne wait_step_2
+    rts
+}
+*/
+
+clear_screen: {
+    lda #' '
+    ldx #251
+clear:
+    dex
+    sta DEFAULT_SCREEN_MEMORY, x
+    sta DEFAULT_SCREEN_MEMORY + 250, x
+    sta DEFAULT_SCREEN_MEMORY + 250, x
+    sta DEFAULT_SCREEN_MEMORY + 250, x
+    bne clear
     rts
 }

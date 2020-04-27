@@ -124,10 +124,19 @@
 }
 // Keyboard matrix columns and joystick #2
 // Bits are cleared (set to 0!) when joystick pressed
-// 0 = up, 1 = down, 2 = left, 3 = right, 4 = fire
+// Read 0 = up, 1 = down, 2 = left, 3 = right, 4 = fire
 .const JOYSTICK_2 = $DC00  // 56320
 // Keyboard matrix rows and joystick #1
 .const JOYSTICK_1 = $DC01  // 56321
+// Write bit #0-5 = select keyboard matrix column #x
+// Write bit #6-7 = paddle selection, %01 = paddle #1, %10 = paddle #2
+.const KEYBOARD_1 = $DC00
+// Bit #x: 0 = A key is currently being pressed in keyboard matrix row #x, in
+// the column selected at memory address $DC00
+.const KEYBOARD_2 = $DC01
+// Direction registers, bit #x: 0 = bit #x in port is read-only, 1 = read/write
+.const PORT_A_DIRECTION = $DC02
+.const PORT_B_DIRECTION = $DC03
 
 // Interrupt control and status registers
 // Read bit #0: 1 = Timer A underflow occurred
