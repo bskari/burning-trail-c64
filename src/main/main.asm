@@ -20,44 +20,28 @@ main: {
     lda INTERRUPT_CONTROL_1
     lda INTERRUPT_CONTROL_2
 
-    // Set interrupt request mask to raster beam
-    lda #1
-    sta INTERRUPT_CONTROL_3
-
     // $d012 is the current raster line, and bit #7 of d011 is the 9th bit of
     // that value. We need to make sure it's 0 for our intro.
     lda SCREEN_CONTROL_1
     and #%01111111
     sta SCREEN_CONTROL_1
 
-    // Point IRQ vector to our custom routine
-    lda #<irq
-    sta INTERRUPT_SUBROUTINE_ADDRESS
-    lda #>irq
-    sta INTERRUPT_SUBROUTINE_ADDRESS + 1
-
-    // Trigger interrupt at scanline 0
-    lda #0
-    sta RASTER_LINE_INTERRUPT
-
     cli
 
     // One time, we need to initialize the state
     jsr GameState._initialize_state
 
+    // Set CIA port A to all outputs
+    lda #$FF
+    sta PORT_A_DIRECTION
+    // Set CIA port B to all inputs
+    lda #0
+    sta PORT_B_DIRECTION
+
 loop:
-    jmp loop
-}
-
-
-irq: {
-    // Acknowledge IRQ by clearing register for next interrupt
-    dec INTERRUPT_STATUS_REGISTER
-
     jsr GameState.tick
-
-    // Return to kernel interrupt routine
-    jmp $ea81
+    jsr wait_frame
+    jmp loop
 }
 
 

@@ -38,7 +38,6 @@ done:
 }
 */
 
-/*
 wait_frame: {
     lda RASTER_LINE
     cmp 248
@@ -52,7 +51,6 @@ wait_step_2:
     bne wait_step_2
     rts
 }
-*/
 
 clear_screen: {
     lda #' '

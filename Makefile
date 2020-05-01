@@ -3,12 +3,7 @@
 # it's trying to run the source files as commands. Whatever. Compiling is very
 # fast though, so just put them all together.
 sources = \
-  src/main/constants.asm \
-  src/main/functions.asm \
-  src/main/game_state.asm \
-  src/main/macros.asm \
-  src/main/main.asm \
-  src/main/main_menu_state.asm \
+  src/main/*.asm \
   ;
 
 .PHONY: all
@@ -28,7 +23,7 @@ test: src/test/test.prg
 runtest: src/test/test.prg
 	x64 src/test/test.prg
 
-src/main/main.vs:
+src/main/main.vs: $(sources)
 	java -jar assembler/KickAss.jar -vicesymbols src/main/main.asm
 
 debug: src/main/main.vs

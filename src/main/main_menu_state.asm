@@ -2,13 +2,14 @@
 #import "macros.asm"
 .namespace MainMenuState {
 // **** Constants ****
-.const STATE_YOU_MAY = 0
-.const STATE_TRAVEL = 1
-.const STATE_LEARN_ABOUT_GATE_1 = 2
-.const STATE_LEARN_ABOUT_GATE_2 = 3
-.const STATE_LEARN_ABOUT_BURNING_MAN = 4
+.const STATE_YOU_MAY = 1
+.const STATE_TRAVEL = 2
+.const STATE_LEARN_ABOUT_GATE_1 = 3
+.const STATE_LEARN_ABOUT_GATE_2 = 4
+.const STATE_LEARN_ABOUT_BURNING_MAN = 5
 
 _initialize_subroutine_table:
+    .word 0  // This space intentionally left blank
     .word _initialize_you_may
     .word _initialize_travel
     .word _initialize_learn_about_gate_1
@@ -16,6 +17,7 @@ _initialize_subroutine_table:
     .word _initialize_learn_about_burning_man
 
 _tick_subroutine_table:
+    .word 0  // This space intentionally left blank
     .word _tick_you_may
     .word _tick_space_key_return
     .word _tick_space_key_return
@@ -63,13 +65,6 @@ _call_tick_subroutine: {
 
 
 _tick_you_may: {
-    // Set CIA port A to all outputs
-    lda #$FF
-    sta PORT_A_DIRECTION
-    // Set CIA port B to all inputs
-    lda #0
-    sta PORT_B_DIRECTION
-
     // Check for 1 key, row = 7, column = 0
     lda #%0111_1111
     sta KEYBOARD_1
@@ -79,6 +74,7 @@ _tick_you_may: {
     lda #STATE_TRAVEL
     rts
 
+!not_pressed:
     // Check for 2 key, row = 7, column = 3
     lda #%0111_1111
     sta KEYBOARD_1
@@ -88,6 +84,7 @@ _tick_you_may: {
     lda #STATE_LEARN_ABOUT_GATE_1
     rts
 
+!not_pressed:
     // Check for 3 key, row = 1, column = 0
     // We could put this test right after the check for 1 key, beacuse it
     // already has column 0 selected, but eeehhhh this is clearer
@@ -106,27 +103,19 @@ _tick_you_may: {
 
 
 _tick_space_key_return: {
-    inc BORDER_COLOR
-    inc counter
-    bne continue
-    lda #STATE_YOU_MAY
-    rts
-continue:
-
     // When space key is pressed, go back to the first state
     // Check for space key, row = 7, column = 4
     lda #%0111_1111
     sta KEYBOARD_1
     lda KEYBOARD_2
     and #%0001_0000
-    beq not_pressed
+    bne !not_pressed+
     lda #STATE_YOU_MAY
     rts
 
-not_pressed:
+!not_pressed:
     lda #0
     rts
-counter: .byte 0
 }
 
 
@@ -213,5 +202,9 @@ _initialize_learn_about_burning_man: {
 _greeting:
     .text greeting
 }
+
+.var space_to_continue = "press space to continue"
+_space_to_continue:
+.text space_to_continue
 
 }  // End namespace

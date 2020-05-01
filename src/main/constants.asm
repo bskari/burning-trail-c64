@@ -66,6 +66,8 @@
 .const SCREEN_CONTROL_1 = $D011  // 53265
 // Set this to generate an interrupt on a specific raster line
 .const RASTER_LINE_INTERRUPT = $D012  // 53266
+// Or read it to find the current raster line
+.const RASTER_LINE = $D012  // 53266
 .const SPRITE_ENABLE = $D015  // 53269
 // Screen control bits
 // 0-2: horizontal raster scroll

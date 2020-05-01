@@ -1,14 +1,16 @@
 #importonce
 #import "main_menu_state.asm"
 
-.const GAME_STATE_MAIN_MENU = 0
+.const GAME_STATE_MAIN_MENU = 1
 
 .namespace GameState {
 
 // **** Constants ****
 _initialize_subroutine_table:
+    .word 0  // This space intentionally left blank
     .word MainMenuState.initialize
 _tick_subroutine_table:
+    .word 0  // This space intentionally left blank
     .word MainMenuState.tick
 
 // **** Variables ****
@@ -40,6 +42,11 @@ tick: {
     sta _need_to_initialize_new_state
 
 continue:
+    jsr _call_tick_subroutine
+    rts
+}
+
+_call_tick_subroutine: {
     lda _state
     asl
     tax
