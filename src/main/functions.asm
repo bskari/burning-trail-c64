@@ -59,8 +59,8 @@ clear:
     dex
     sta DEFAULT_SCREEN_MEMORY, x
     sta DEFAULT_SCREEN_MEMORY + 250, x
-    sta DEFAULT_SCREEN_MEMORY + 250, x
-    sta DEFAULT_SCREEN_MEMORY + 250, x
+    sta DEFAULT_SCREEN_MEMORY + 500, x
+    sta DEFAULT_SCREEN_MEMORY + 750, x
     bne clear
     rts
 }
