@@ -10,7 +10,7 @@
 main: {
     sei
 
-    :init_screen()
+    :initialize_screen()
 
     // Turn off CIA timer interrupts
     ldy #%01111111
@@ -45,7 +45,7 @@ loop:
 }
 
 
-.macro init_screen() {
+.macro initialize_screen() {
     ldx #BLACK
     stx BORDER_COLOR
     stx BACKGROUND_COLOR

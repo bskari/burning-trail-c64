@@ -21,7 +21,8 @@ _initialize_subroutine_table:
 _tick_subroutine_table:
     .word 0  // This space intentionally left blank
     .word _tick_you_may
-    .word _tick_travel
+    //.word _tick_travel
+    .word _tick_space_key_return
     .word _tick_space_key_return
     .word _tick_space_key_return
     .word _tick_space_key_return
@@ -78,9 +79,8 @@ _call_tick_subroutine: {
 _tick_you_may: {
     // Check for 1 key, row = 7, column = 0
     lda #%0111_1111
-    sta KEYBOARD_1
-    lda KEYBOARD_2
-    and #%0000_0001
+    ldx #%0000_0001
+    jsr read_keyboard_press
     bne !not_pressed+
     lda #State_Travel
     rts
@@ -88,21 +88,17 @@ _tick_you_may: {
 !not_pressed:
     // Check for 2 key, row = 7, column = 3
     lda #%0111_1111
-    sta KEYBOARD_1
-    lda KEYBOARD_2
-    and #%0000_1000
+    ldx #%0000_1000
+    jsr read_keyboard_press
     bne !not_pressed+
     lda #State_LearnAboutGate1
     rts
 
 !not_pressed:
     // Check for 3 key, row = 1, column = 0
-    // We could put this test right after the check for 1 key, beacuse it
-    // already has column 0 selected, but eeehhhh this is clearer
     lda #%1111_1101
-    sta KEYBOARD_1
-    lda KEYBOARD_2
-    and #%0000_0001
+    ldx #%0000_0001
+    jsr read_keyboard_press
     bne !not_pressed+
     lda #State_LearnAboutBurningMan
     rts
@@ -114,11 +110,11 @@ _tick_you_may: {
 
 
 _tick_travel: {
+    // This function is just a placeholder for now
     // Check for 1 key, row = 7, column = 0
     lda #%0111_1111
-    sta KEYBOARD_1
-    lda KEYBOARD_2
-    and #%0000_0001
+    ldx #%0000_0001
+    jsr read_keyboard_press
     bne !not_pressed+
     lda #State_Travel
     rts
@@ -126,21 +122,17 @@ _tick_travel: {
 !not_pressed:
     // Check for 2 key, row = 7, column = 3
     lda #%0111_1111
-    sta KEYBOARD_1
-    lda KEYBOARD_2
-    and #%0000_1000
+    ldx #%0000_1000
+    jsr read_keyboard_press
     bne !not_pressed+
     lda #State_LearnAboutGate1
     rts
 
 !not_pressed:
     // Check for 3 key, row = 1, column = 0
-    // We could put this test right after the check for 1 key, beacuse it
-    // already has column 0 selected, but eeehhhh this is clearer
     lda #%1111_1101
-    sta KEYBOARD_1
-    lda KEYBOARD_2
-    and #%0000_0001
+    ldx #%0000_0001
+    jsr read_keyboard_press
     bne !not_pressed+
     lda #State_LearnAboutBurningMan
     rts
@@ -155,9 +147,8 @@ _tick_space_key_return: {
     // When space key is pressed, go back to the first state
     // Check for space key, row = 7, column = 4
     lda #%0111_1111
-    sta KEYBOARD_1
-    lda KEYBOARD_2
-    and #%0001_0000
+    ldx #%0001_0000
+    jsr read_keyboard_press
     bne !not_pressed+
     lda #State_YouMay
     rts
@@ -213,6 +204,7 @@ _initialize_travel: {
     .var option_5_2 = "between the choices"
     .var question = "what is your choice?"
 
+    .break
     jsr clear_screen
     :draw_string(1, 6, intro_1, _intro_1)
     :draw_string(1, 7, intro_2, _intro_2)
