@@ -7,9 +7,8 @@
     State_Travel = 2,
     State_LearnAboutBurningMan1 = 3,
     State_LearnAboutBurningMan2 = 4,
-    State_LearnAboutBurningMan3 = 5,
-    State_LearnAboutBurningMan4 = 6,
-    State_LearnAboutGate = 7
+    State_LearnAboutGate = 5,
+    State_GoTravel = 6
 }
 
 _initialize_subroutine_table:
@@ -18,8 +17,6 @@ _initialize_subroutine_table:
     .word _initialize_travel
     .word _initialize_learn_about_burning_man_1
     .word _initialize_learn_about_burning_man_2
-    .word _initialize_learn_about_burning_man_3
-    .word _initialize_learn_about_burning_man_4
     .word _initialize_learn_about_gate
 
 _tick_subroutine_table:
@@ -27,8 +24,6 @@ _tick_subroutine_table:
     .word _tick_you_may
     .word _tick_space_key_return
     .word _tick_space_learn_about_burning_man_1
-    .word _tick_space_learn_about_burning_man_2
-    .word _tick_space_learn_about_burning_man_3
     .word _tick_space_key_return
     .word _tick_space_key_return
 
@@ -115,7 +110,6 @@ _tick_you_may: {
 
 
 _tick_travel: {
-    // This function is just a placeholder for now
     // Check for 1 key, row = 7, column = 0
     lda #%0111_1111
     ldx #%0000_0001
@@ -171,23 +165,7 @@ _tick_space_learn_about_burning_man_2: {
     ldx #%0001_0000
     jsr read_keyboard_press
     bne !not_pressed+
-    lda #State_LearnAboutBurningMan3
-    rts
-
-!not_pressed:
-    lda #0
-    rts
-}
-
-
-_tick_space_learn_about_burning_man_3: {
-    // When space key is pressed, go to learning part 4
-    // Check for space key, row = 7, column = 4
-    lda #%0111_1111
-    ldx #%0001_0000
-    jsr read_keyboard_press
-    bne !not_pressed+
-    lda #State_LearnAboutBurningMan4
+    lda #State_YouMay
     rts
 
 !not_pressed:
@@ -237,9 +215,9 @@ _initialize_you_may: {
     :draw_string(7, 14, line_3, _line_3)
      rts
 
-_line_1: .text line_1
-_line_2: .text line_2
-_line_3: .text line_3
+    _line_1: .text line_1
+    _line_2: .text line_2
+    _line_3: .text line_3
 }
 
 
@@ -268,24 +246,15 @@ _initialize_travel: {
     :draw_string(1, 18, question, _question)
     rts
 
-_intro_1:
-    .text intro_1
-_intro_2:
-    .text intro_2
-_option_1:
-    .text option_1
-_option_2:
-    .text option_2
-_option_3:
-    .text option_3
-_option_4:
-    .text option_4
-_option_5:
-    .text option_5
-_option_5_2:
-    .text option_5_2
-_question:
-    .text question
+    _intro_1: .text intro_1
+    _intro_2: .text intro_2
+    _option_1: .text option_1
+    _option_2: .text option_2
+    _option_3: .text option_3
+    _option_4: .text option_4
+    _option_5: .text option_5
+    _option_5_2: .text option_5_2
+    _question: .text question
 }
 
 
@@ -323,7 +292,7 @@ _initialize_learn_about_gate: {
     :draw_string(4, 17, line_14, _line_14)
     :draw_string(4, 18, line_15, _line_15)
 
-    :draw_string(8, 20, space_to_continue, _space_to_continue)
+    :draw_string(8, 22, space_to_continue, _space_to_continue)
      rts
 
     _line_1: .text line_1
@@ -360,20 +329,20 @@ _initialize_learn_about_burning_man_1: {
     .var line_13 = "up to and including labor day."
 
     jsr clear_screen
-    :draw_string(4, 3, line_1, _line_1)
-    :draw_string(4, 4, line_2, _line_2)
-    :draw_string(4, 5, line_3, _line_3)
-    :draw_string(4, 6, line_4, _line_4)
-    :draw_string(4, 7, line_5, _line_5)
-    :draw_string(4, 8, line_6, _line_6)
-    :draw_string(4, 9, line_7, _line_7)
-    :draw_string(4, 10, line_8, _line_8)
-    :draw_string(4, 11, line_9, _line_9)
-    :draw_string(4, 12, line_10, _line_10)
-    :draw_string(4, 13, line_11, _line_11)
-    :draw_string(4, 14, line_12, _line_12)
-    :draw_string(4, 15, line_13, _line_13)
-    :draw_string(8, 17, space_to_continue, _space_to_continue)
+    :draw_string(4, 4, line_1, _line_1)
+    :draw_string(4, 5, line_2, _line_2)
+    :draw_string(4, 6, line_3, _line_3)
+    :draw_string(4, 7, line_4, _line_4)
+    :draw_string(4, 8, line_5, _line_5)
+    :draw_string(4, 9, line_6, _line_6)
+    :draw_string(4, 10, line_7, _line_7)
+    :draw_string(4, 11, line_8, _line_8)
+    :draw_string(4, 12, line_9, _line_9)
+    :draw_string(4, 13, line_10, _line_10)
+    :draw_string(4, 14, line_11, _line_11)
+    :draw_string(4, 15, line_12, _line_12)
+    :draw_string(4, 16, line_13, _line_13)
+    :draw_string(8, 18, space_to_continue, _space_to_continue)
      rts
 
     _line_1: .text line_1
@@ -394,43 +363,36 @@ _initialize_learn_about_burning_man_1: {
 
 _initialize_learn_about_burning_man_2: {
     .var line_1 = "burning man's ethos are"
-    .var line_2 = "exemplified by ten principles."
-    .var line_3 = "they were crafted not as a"
-    .var line_4 = "dictate of how people should be"
-    .var line_5 = "and act, but as a reflection of"
-    .var line_6 = "the community’s ethos and"
-    .var line_7 = "culture as it had organically"
-    .var line_8 = "developed since the event’s"
-    .var line_9 = "inception."
-    .var line_10 = "1. radical inclusion"
-    .var line_11 = "anyone may be a part of burning"
-    .var line_12 = "man. we welcome and respect the"
-    .var line_13 = "stranger. no prerequisites."
-    .var line_14 = "2. gifting"
-    .var line_15 = "burning man is devoted to acts of"
-    .var line_16 = "gift giving. gift are unconditional"
-    .var line_17 = "and do not contemplate exchange."
+    .var line_2 = "exemplified by ten principles,"
+    .var line_3 = "a reflection of the community’s"
+    .var line_4 = "culture as it had developed."
+    .var line_5 = "1. radical inclusion"
+    .var line_6 = "2. gifting"
+    .var line_7 = "3. decommodification"
+    .var line_8 = "4. radical self-reliance"
+    .var line_9 = "5. radical self-expression"
+    .var line_10 = "6. communal effort"
+    .var line_11 = "7. civic responsibility"
+    .var line_12 = "8. leaving no trace"
+    .var line_13 = "9. participation"
+    .var line_14 = "10. immediacy"
 
     jsr clear_screen
-    :draw_string(4, 2, line_1, _line_1)
-    :draw_string(4, 3, line_2, _line_2)
-    :draw_string(4, 4, line_3, _line_3)
-    :draw_string(4, 5, line_4, _line_4)
-    :draw_string(4, 6, line_5, _line_5)
-    :draw_string(4, 7, line_6, _line_6)
-    :draw_string(4, 8, line_7, _line_7)
-    :draw_string(4, 9, line_8, _line_8)
-    :draw_string(4, 10, line_9, _line_9)
+    :draw_string(4, 4, line_1, _line_1)
+    :draw_string(4, 5, line_2, _line_2)
+    :draw_string(4, 6, line_3, _line_3)
+    :draw_string(4, 7, line_4, _line_4)
 
-    :draw_string(6, 12, line_10, _line_10)
-    :draw_string(4, 13, line_11, _line_11)
-    :draw_string(4, 14, line_12, _line_12)
-    :draw_string(4, 15, line_13, _line_13)
-
-    :draw_string(6, 17, line_14, _line_14)
-    :draw_string(4, 18, line_15, _line_15)
-    :draw_string(4, 19, line_16, _line_16)
-    :draw_string(4, 20, line_17, _line_17)
+    :draw_string(6, 9, line_5, _line_5)
+    :draw_string(6, 10, line_6, _line_6)
+    :draw_string(6, 11, line_7, _line_7)
+    :draw_string(6, 12, line_8, _line_8)
+    :draw_string(6, 13, line_9, _line_9)
+    :draw_string(6, 14, line_10, _line_10)
+    :draw_string(6, 15, line_11, _line_11)
+    :draw_string(6, 16, line_12, _line_12)
+    :draw_string(6, 17, line_13, _line_13)
+    :draw_string(6, 18, line_14, _line_14)
 
     :draw_string(8, 22, space_to_continue, _space_to_continue)
      rts
@@ -449,110 +411,6 @@ _initialize_learn_about_burning_man_2: {
     _line_12: .text line_12
     _line_13: .text line_13
     _line_14: .text line_14
-    _line_15: .text line_15
-    _line_16: .text line_16
-    _line_17: .text line_17
-}
-
-
-_initialize_learn_about_burning_man_3: {
-    .var line_1 = "3. decommodification"
-    .var line_2 = "we resist the substitution of"
-    .var line_3 = "consumption for experiences."
-    .var line_4 = "4. radical self-reliance"
-    .var line_5 = "burning man encourages the"
-    .var line_6 = "individual to discover, exercise"
-    .var line_7 = "and rely on their inner resources."
-    .var line_8 = "5. radical self-expression"
-    .var line_9 = "arises from the unique gifts of"
-    .var line_10 = "the individual, offered to all."
-    .var line_11 = "6. communal effort"
-    .var line_12 = "our community values creative"
-    .var line_13 = "cooperation and collaboration."
-
-    jsr clear_screen
-    :draw_string(6, 3, line_1, _line_1)
-    :draw_string(4, 4, line_2, _line_2)
-    :draw_string(4, 5, line_3, _line_3)
-
-    :draw_string(6, 7, line_4, _line_4)
-    :draw_string(4, 8, line_5, _line_5)
-    :draw_string(4, 9, line_6, _line_6)
-    :draw_string(4, 10, line_7, _line_7)
-
-    :draw_string(6, 12, line_8, _line_8)
-    :draw_string(4, 13, line_9, _line_9)
-    :draw_string(4, 14, line_10, _line_10)
-
-    :draw_string(6, 16, line_11, _line_11)
-    :draw_string(4, 17, line_12, _line_12)
-    :draw_string(4, 18, line_13, _line_13)
-
-    :draw_string(8, 20, space_to_continue, _space_to_continue)
-    rts
-
-    _line_1: .text line_1
-    _line_2: .text line_2
-    _line_3: .text line_3
-    _line_4: .text line_4
-    _line_5: .text line_5
-    _line_6: .text line_6
-    _line_7: .text line_7
-    _line_8: .text line_8
-    _line_9: .text line_9
-    _line_10: .text line_10
-    _line_11: .text line_11
-    _line_12: .text line_12
-    _line_13: .text line_13
-}
-
-
-_initialize_learn_about_burning_man_4: {
-    .var line_1 = "7. civic responsibility"
-    .var line_2 = "we value civil society."
-    .var line_3 = "8. leaving no trace"
-    .var line_4 = "we are committed to leaving no"
-    .var line_5 = "physical trace of our activities."
-    .var line_6 = "9. participation"
-    .var line_7 = "we achieve being through doing."
-    .var line_8 = "all are invited to work and play."
-    .var line_9 = "10. immediacy"
-    .var line_10 = "we seek to overcome barriers that"
-    .var line_11 = "stand between us and a"
-    .var line_12 = "recognition of our inner selves."
-
-    jsr clear_screen
-    :draw_string(6, 4, line_1, _line_1)
-    :draw_string(4, 5, line_2, _line_2)
-
-    :draw_string(6, 7, line_3, _line_3)
-    :draw_string(4, 8, line_4, _line_4)
-    :draw_string(4, 9, line_5, _line_5)
-
-    :draw_string(6, 11, line_6, _line_6)
-    :draw_string(4, 12, line_7, _line_7)
-    :draw_string(4, 13, line_8, _line_8)
-
-    :draw_string(6, 14, line_9, _line_9)
-    :draw_string(6, 15, line_10, _line_10)
-    :draw_string(4, 16, line_11, _line_11)
-    :draw_string(4, 17, line_12, _line_12)
-
-    :draw_string(8, 19, space_to_continue, _space_to_continue)
-    rts
-
-    _line_1: .text line_1
-    _line_2: .text line_2
-    _line_3: .text line_3
-    _line_4: .text line_4
-    _line_5: .text line_5
-    _line_6: .text line_6
-    _line_7: .text line_7
-    _line_8: .text line_8
-    _line_9: .text line_9
-    _line_10: .text line_10
-    _line_11: .text line_11
-    _line_12: .text line_12
 }
 
 }  // End namespace
