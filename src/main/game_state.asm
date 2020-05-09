@@ -1,9 +1,11 @@
 #importonce
 #import "main_menu_state.asm"
 
-.const GAME_STATE_MAIN_MENU = 1
-
 .namespace GameState {
+
+.enum {
+    GameState_MainMenu = 1
+}
 
 // **** Constants ****
 _initialize_subroutine_table:
@@ -14,7 +16,8 @@ _tick_subroutine_table:
     .word MainMenuState.tick
 
 // **** Variables ****
-_state: .byte GAME_STATE_MAIN_MENU
+player_type: .byte Player_Billionaire
+_state: .byte GameState_MainMenu
 _need_to_initialize_new_state: .byte 1
 
 // **** Subroutines ****

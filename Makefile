@@ -11,6 +11,7 @@ all: src/main/main.prg #src/test/test.prg
 
 src/main/main.prg: $(sources)
 	java -jar assembler/KickAss.jar src/main/main.asm
+	ls -l src/main/main.prg
 
 run: src/main/main.prg
 	x64 src/main/main.prg
@@ -26,7 +27,7 @@ runtest: src/test/test.prg
 src/main/main.vs: $(sources)
 	java -jar assembler/KickAss.jar -vicesymbols src/main/main.asm
 
-debug: src/main/main.vs
+debug: src/main/main.prg src/main/main.vs
 
 rundebug: src/main/main.prg src/main/main.vs
 	echo 'll "src/main/main.vs"' > debug-commands.txt

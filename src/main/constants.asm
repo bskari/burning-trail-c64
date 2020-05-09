@@ -187,3 +187,14 @@
 .const NUMBER_OF_SPRITES = 11  // This is number of sprites defined in Sprite Pad
 .const SPRITE_PLAYER = 64
 .const SPRITE_POINTER_BASE = SCREEN_CHAR + SPRITE_TABLE_OFFSET
+
+
+// ****************
+// Game state enums
+// ****************
+.enum {
+    Player_Billionaire = 1,
+    Player_SparklePony = 2,
+    Player_VeteranBurner = 3,
+    Player_Virgin = 4
+}
