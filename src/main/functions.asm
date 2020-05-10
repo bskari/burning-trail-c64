@@ -1,3 +1,4 @@
+#importonce
 // Generic functions, e.g. for copying memory
 
 // Moves memory down from a higher address to a lower address. The direction
@@ -89,7 +90,6 @@ read_keyboard_press: {
     lda previous
     beq not_previously_pressed
 
-        .break
         // See if any key is pressed
         lda #%0000_0000
         sta KEYBOARD_1
@@ -98,7 +98,7 @@ read_keyboard_press: {
         // bitmask, but because we're checking for any key, our
         // bitmask would be all 1s
 
-        // if no key is pressed (0 means pressed):
+        // if no keys are pressed
         cmp #$ff
         bne pressed
 

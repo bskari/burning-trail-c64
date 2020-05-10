@@ -262,23 +262,23 @@ _initialize_learn_about_gate: {
     .var line_15 = "a day throughout the event."
 
     jsr clear_screen
-    :draw_string(4, 4, line_1, _line_1)
-    :draw_string(4, 5, line_2, _line_2)
-    :draw_string(4, 6, line_3, _line_3)
-    :draw_string(4, 7, line_4, _line_4)
-    :draw_string(4, 8, line_5, _line_5)
-    :draw_string(4, 9, line_6, _line_6)
-    :draw_string(4, 10, line_7, _line_7)
-    :draw_string(4, 11, line_8, _line_8)
-    :draw_string(4, 12, line_9, _line_9)
-    :draw_string(4, 13, line_10, _line_10)
-    :draw_string(4, 14, line_11, _line_11)
-    :draw_string(4, 15, line_12, _line_12)
-    :draw_string(4, 16, line_13, _line_13)
-    :draw_string(4, 17, line_14, _line_14)
-    :draw_string(4, 18, line_15, _line_15)
+    :draw_centered_string(4, line_1, _line_1)
+    :draw_centered_string(5, line_2, _line_2)
+    :draw_centered_string(6, line_3, _line_3)
+    :draw_centered_string(7, line_4, _line_4)
+    :draw_centered_string(8, line_5, _line_5)
+    :draw_centered_string(9, line_6, _line_6)
+    :draw_centered_string(10, line_7, _line_7)
+    :draw_centered_string(11, line_8, _line_8)
+    :draw_centered_string(12, line_9, _line_9)
+    :draw_centered_string(13, line_10, _line_10)
+    :draw_centered_string(14, line_11, _line_11)
+    :draw_centered_string(15, line_12, _line_12)
+    :draw_centered_string(16, line_13, _line_13)
+    :draw_centered_string(17, line_14, _line_14)
+    :draw_centered_string(18, line_15, _line_15)
 
-    :draw_string(8, 22, space_to_continue, _space_to_continue)
+    :draw_centered_string(22, space_to_continue, _space_to_continue)
      rts
 
     _line_1: .text line_1
@@ -303,8 +303,8 @@ _initialize_shop: {
     .var line_2 = "to get some supplies. you'll need"
     .var line_3 = "food, plenty of water, and shelter."
 
-    .var billionaire_1 = "don't worry, your camp will"
-    .var billionaire_2 = "provide all that. cocktails at 4!"
+    .var billionaire_1 = "don't worry though, your camp"
+    .var billionaire_2 = "provides all that. let's go!"
 
     .var sparkle_pony_1 = "one of the principles of burning"
     .var sparkle_pony_2 = "is gifting. you've got 2"
@@ -315,39 +315,39 @@ _initialize_shop: {
     .var veteran_2 = "just need to get food, load and go!"
 
     jsr clear_screen
-    :draw_string(4, 4, line_1, _line_1)
-    :draw_string(4, 5, line_2, _line_2)
-    :draw_string(4, 6, line_3, _line_3)
+    :draw_centered_string(4, line_1, _line_1)
+    :draw_centered_string(5, line_2, _line_2)
+    :draw_centered_string(6, line_3, _line_3)
 
-    // :draw_string doesn't clopper Y, so use it
+    // :draw_centered_string doesn't clopper Y, so use it
     ldy GameState.player_type
 
-    cpy Player_Billionaire
+    cpy #Player_Billionaire
     bne !next+
-    :draw_string(4, 10, billionaire_1, _billionaire_1)
-    :draw_string(4, 11, billionaire_1, _billionaire_2)
+    :draw_centered_string(10, billionaire_1, _billionaire_1)
+    :draw_centered_string(11, billionaire_2, _billionaire_2)
     jmp end
 
 !next:
-    cpy Player_SparklePony
+    cpy #Player_SparklePony
     bne !next+
-    :draw_string(4, 10, sparkle_pony_1, _sparkle_pony_1)
-    :draw_string(4, 11, sparkle_pony_2, _sparkle_pony_2)
-    :draw_string(4, 12, sparkle_pony_3, _sparkle_pony_3)
-    :draw_string(4, 13, sparkle_pony_4, _sparkle_pony_4)
+    :draw_centered_string(10, sparkle_pony_1, _sparkle_pony_1)
+    :draw_centered_string(11, sparkle_pony_2, _sparkle_pony_2)
+    :draw_centered_string(12, sparkle_pony_3, _sparkle_pony_3)
+    :draw_centered_string(13, sparkle_pony_4, _sparkle_pony_4)
     jmp end
 
 !next:
-    cpy Player_VeteranBurner
+    cpy #Player_VeteranBurner
     bne !next+
-    :draw_string(4, 10, veteran_1, _veteran_1)
-    :draw_string(4, 11, veteran_2, _veteran_2)
+    :draw_centered_string(10, veteran_1, _veteran_1)
+    :draw_centered_string(11, veteran_2, _veteran_2)
     jmp end
 
 !next:
 end:
-    :draw_string(8, 22, space_to_continue, _space_to_continue)
-     rts
+    :draw_centered_string(22, space_to_continue, _space_to_continue)
+    rts
 
     _line_1: .text line_1
     _line_2: .text line_2
@@ -379,20 +379,20 @@ _initialize_learn_about_burning_man_1: {
     .var line_13 = "up to and including labor day."
 
     jsr clear_screen
-    :draw_string(4, 4, line_1, _line_1)
-    :draw_string(4, 5, line_2, _line_2)
-    :draw_string(4, 6, line_3, _line_3)
-    :draw_string(4, 7, line_4, _line_4)
-    :draw_string(4, 8, line_5, _line_5)
-    :draw_string(4, 9, line_6, _line_6)
-    :draw_string(4, 10, line_7, _line_7)
-    :draw_string(4, 11, line_8, _line_8)
-    :draw_string(4, 12, line_9, _line_9)
-    :draw_string(4, 13, line_10, _line_10)
-    :draw_string(4, 14, line_11, _line_11)
-    :draw_string(4, 15, line_12, _line_12)
-    :draw_string(4, 16, line_13, _line_13)
-    :draw_string(8, 18, space_to_continue, _space_to_continue)
+    :draw_centered_string(4, line_1, _line_1)
+    :draw_centered_string(5, line_2, _line_2)
+    :draw_centered_string(6, line_3, _line_3)
+    :draw_centered_string(7, line_4, _line_4)
+    :draw_centered_string(8, line_5, _line_5)
+    :draw_centered_string(9, line_6, _line_6)
+    :draw_centered_string(10, line_7, _line_7)
+    :draw_centered_string(11, line_8, _line_8)
+    :draw_centered_string(12, line_9, _line_9)
+    :draw_centered_string(13, line_10, _line_10)
+    :draw_centered_string(14, line_11, _line_11)
+    :draw_centered_string(15, line_12, _line_12)
+    :draw_centered_string(16, line_13, _line_13)
+    :draw_centered_string(18, space_to_continue, _space_to_continue)
      rts
 
     _line_1: .text line_1

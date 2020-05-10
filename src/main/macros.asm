@@ -6,3 +6,8 @@
     dex
     bpl !loop_text-
 }
+
+.macro draw_centered_string(y_pos, string_var, string_address) {
+    .var x_pos = (40 - string_var.size() - 1) / 2
+    :draw_string(x_pos, y_pos, string_var, string_address)
+}
