@@ -80,7 +80,9 @@ _call_tick_subroutine: {
 _tick_you_may: {
     // Check for 1 key, row = 7, column = 0
     lda #%0111_1111
-    ldx #%0000_0001
+    sta PARAM_1
+    lda #%0000_0001
+    sta PARAM_2
     jsr read_keyboard_press
     bne !not_pressed+
     lda #State_Travel
@@ -89,7 +91,9 @@ _tick_you_may: {
 !not_pressed:
     // Check for 2 key, row = 7, column = 3
     lda #%0111_1111
-    ldx #%0000_1000
+    sta PARAM_1
+    lda #%0000_1000
+    sta PARAM_2
     jsr read_keyboard_press
     bne !not_pressed+
     lda #State_LearnAboutBurningMan1
@@ -98,7 +102,9 @@ _tick_you_may: {
 !not_pressed:
     // Check for 3 key, row = 1, column = 0
     lda #%1111_1101
-    ldx #%0000_0001
+    sta PARAM_1
+    lda #%0000_0001
+    sta PARAM_2
     jsr read_keyboard_press
     bne !not_pressed+
     lda #State_LearnAboutGate
@@ -116,7 +122,9 @@ check_next:
     dey
     bmi nothing_pressed
     lda _rows, y
-    ldx _columns, y
+    sta PARAM_1
+    lda _columns, y
+    sta PARAM_2
     jsr read_keyboard_press
     bne check_next
 
@@ -155,7 +163,9 @@ _tick_space_key_return: {
     // When space key is pressed, go back to the first state
     // Check for space key, row = 7, column = 4
     lda #%0111_1111
-    ldx #%0001_0000
+    sta PARAM_1
+    lda #%0001_0000
+    sta PARAM_2
     jsr read_keyboard_press
     bne !not_pressed+
     lda #State_YouMay

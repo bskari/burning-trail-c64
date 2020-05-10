@@ -69,53 +69,72 @@ clear:
 
 // Reads a single key from the keyboard. Handles debouncing, so it immediately
 // returns the keyboard state when pressed, but subsequent checks won't until
-// it's released and pressed again. Put the bitfield for KEYBOARD_1 in A and
-// bitfiled for KEYBOARD_2 in X. Returns $FF if no keys were pressed, otherwise
-// returns the bitfield.
+// it's released and pressed again. Put the bitfield for KEYBOARD_1 in PARAM_1
+// and bitfiled for KEYBOARD_2 in PARAM_2. Returns $FF if no keys were pressed,
+// otherwise returns the bitfield.
 read_keyboard_press: {
     // Basic flow here is:
-    // if keyboard is pressed:
-    //   if previous is pressed:
-    //     return not pressed ($ff)
+    // if previously pressed:
+    //   if no keys are currently pressed:
+    //     set previous to false
+    //   return not pressed ($ff)
+    // else:
+    //   if the key is pressed:
+    //     set previous to true
+    //     return the key
     //   else:
-    //     set previous to pressed
-    //     return keyboard
-    // set previous to not pressed
-    // return not pressed ($ff)
+    //     return not pressed ($ff)
 
-    sta KEYBOARD_1
-    stx PARAM_1
-    lda KEYBOARD_2
-    and PARAM_1
+    // if previously pressed:
+    lda previous
+    beq not_previously_pressed
 
-    // if keyboard is pressed (0 means pressed):
-    bne return
+        .break
+        // See if any key is pressed
+        lda #%0000_0000
+        sta KEYBOARD_1
+        lda KEYBOARD_2
+        // Normally you would bitwise-and the value with some
+        // bitmask, but because we're checking for any key, our
+        // bitmask would be all 1s
 
-        // if previously pressed (0 means pressed):
-        ldx previous
-        bne not_previously_pressed
+        // if no key is pressed (0 means pressed):
+        cmp #$ff
+        bne pressed
 
+            // set previous to false
+            ldx #0
+            stx previous
+
+        pressed:
+        // return not pressed
+        lda #$ff
+        rts
+
+    // else:
+    not_previously_pressed:
+        // See if the key is pressed
+        lda PARAM_1
+        sta KEYBOARD_1
+        lda KEYBOARD_2
+        and PARAM_2
+
+        // if the key is pressed (0 means pressed):
+        bne not_pressed
+
+            // set previous to true
+            ldx #1
+            stx previous
+            // return the key, which is already stored in A
+            // But do tax so that we set the zero flag
+            tax
+            rts
+
+        // else:
+        not_pressed:
             // return not pressed
             lda #$ff
             rts
 
-        // else:
-        not_previously_pressed:
-            // set previous to pressed
-            ldx #0
-            stx previous
-            // Return keyboard. A already has the keyboard, but do tax to set
-            // the zero flag.
-            tax
-            rts
-
-    // else:
-    return:
-        // set previous to not pressed
-        lda #$ff
-        sta previous
-        // return not pressed
-        rts
-
-previous: .byte $ff
+previous: .byte 0
 }
