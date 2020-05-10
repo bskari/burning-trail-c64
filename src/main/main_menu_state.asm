@@ -1,4 +1,5 @@
 #importonce
+#import "lookup_tables.asm"
 #import "macros.asm"
 #import "game_state.asm"
 
@@ -78,52 +79,45 @@ _call_tick_subroutine: {
 
 
 _tick_you_may: {
-    // Check for 1 key, row = 7, column = 0
-    lda #%0111_1111
+    ldy #0
+check_next:
+    iny
+    cpy #4
+    beq nothing_pressed
+    lda LookupTables.number_key_to_columns_bitmask, y
     sta PARAM_1
-    lda #%0000_0001
+    lda LookupTables.number_key_to_columns_bitmask, y
     sta PARAM_2
     jsr read_keyboard_press
-    bne !not_pressed+
-    lda #State_Travel
+    bne check_next
+
+    // Something was pressed!
+    lda _states, y
     rts
 
-!not_pressed:
-    // Check for 2 key, row = 7, column = 3
-    lda #%0111_1111
-    sta PARAM_1
-    lda #%0000_1000
-    sta PARAM_2
-    jsr read_keyboard_press
-    bne !not_pressed+
-    lda #State_LearnAboutBurningMan1
-    rts
-
-!not_pressed:
-    // Check for 3 key, row = 1, column = 0
-    lda #%1111_1101
-    sta PARAM_1
-    lda #%0000_0001
-    sta PARAM_2
-    jsr read_keyboard_press
-    bne !not_pressed+
-    lda #State_LearnAboutGate
-    rts
-
-!not_pressed:
+nothing_pressed:
     lda #0
+
+// This lookup table should never use index 0, so put the first byte as an
+// opcode for rts. Aw yeah, saved a byte!
+_states:
     rts
+
+    .byte State_Travel
+    .byte State_LearnAboutBurningMan1
+    .byte State_LearnAboutGate
 }
 
 
 _tick_travel: {
-    ldy #5
+    ldy #0
 check_next:
-    dey
-    bmi nothing_pressed
-    lda _rows, y
+    iny
+    cpy #6
+    beq nothing_pressed
+    lda LookupTables.number_key_to_row_bitmask, y
     sta PARAM_1
-    lda _columns, y
+    lda LookupTables.number_key_to_columns_bitmask, y
     sta PARAM_2
     jsr read_keyboard_press
     bne check_next
@@ -136,26 +130,16 @@ check_next:
 
 nothing_pressed:
     lda #0
+
+// This lookup table should never use index 0, so put the first byte as an
+// opcode for rts. Aw yeah, saved a byte!
+_player_types:
     rts
 
-_rows:
-    .byte %0111_1111  // 1 key, row 7
-    .byte %0111_1111  // 2 key, row 7
-    .byte %1111_1101  // 3 key, row 1
-    .byte %1111_1101  // 4 key, row 1
-    .byte %1111_1011  // 5 key, row 2
-_columns:
-    .byte %0000_0001  // 1 key, column 0
-    .byte %0000_1000  // 2 key, column 3
-    .byte %0000_0001  // 3 key, column 0
-    .byte %0000_1000  // 4 key, column 3
-    .byte %0000_0001  // 5 key, column 0
-_player_types:
     .byte Player_Billionaire
     .byte Player_SparklePony
     .byte Player_VeteranBurner
     .byte Player_Virgin
-    // 5th state doesn't matter
 }
 
 
@@ -215,8 +199,6 @@ _initialize_travel: {
     .var option_2 = "2. be a sparkle pony"
     .var option_3 = "3. be a veteran burner"
     .var option_4 = "4. be a bright-eyed bushy-tailed virgin"
-    .var option_5 = "5. found out the differences"
-    .var option_5_2 = "between the choices"
     .var question = "what is your choice?"
 
     jsr clear_screen
@@ -227,9 +209,7 @@ _initialize_travel: {
     :draw_string(1, 12, option_2, _option_2)
     :draw_string(1, 13, option_3, _option_3)
     :draw_string(1, 14, option_4, _option_4)
-    :draw_string(1, 15, option_5, _option_5)
-    :draw_string(4, 16, option_5_2, _option_5_2)
-    :draw_string(1, 18, question, _question)
+    :draw_string(1, 17, question, _question)
     rts
 
     _intro_1: .text intro_1
@@ -238,8 +218,6 @@ _initialize_travel: {
     _option_2: .text option_2
     _option_3: .text option_3
     _option_4: .text option_4
-    _option_5: .text option_5
-    _option_5_2: .text option_5_2
     _question: .text question
 }
 
