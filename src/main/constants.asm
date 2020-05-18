@@ -198,3 +198,8 @@
     Player_VeteranBurner = 3,
     Player_Virgin = 4
 }
+
+.enum {
+    GameState_MainMenu = 1,
+    GameState_RunGame = 2
+}

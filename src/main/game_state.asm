@@ -3,22 +3,19 @@
 
 .namespace GameState {
 
-.enum {
-    GameState_MainMenu = 1
-}
-
 // **** Constants ****
 _initialize_subroutine_table:
     .word 0  // This space intentionally left blank
     .word MainMenuState.initialize
+    .word RunGameState.initialize
 _tick_subroutine_table:
     .word 0  // This space intentionally left blank
     .word MainMenuState.tick
+    .word RunGameState.tick
 
 // **** Variables ****
 player_type: .byte Player_Billionaire
 _state: .byte GameState_MainMenu
-_need_to_initialize_new_state: .byte 1
 
 // **** Subroutines ****
 
@@ -36,16 +33,20 @@ _initialize_state: {
 }
 
 
-// Runs a frame of the current state. Loads a state if necessary.
+// Runs a frame of the current state. Initializes a state if necessary.
 tick: {
-    lda _need_to_initialize_new_state
-    beq continue
-    jsr _initialize_state
-    lda #0
-    sta _need_to_initialize_new_state
 
-continue:
     jsr _call_tick_subroutine
+
+    // A return value of 0 indicates that no state change is necessary
+    beq no_state_change
+    sta _state
+    // We could set a flag so that we only do this at the beginning of a tick
+    // and prevent screen tearing, but it's only going to be there for one
+    // frame, who cares
+    jsr _initialize_state
+
+no_state_change:
     rts
 }
 

@@ -10,7 +10,8 @@
     State_Travel = 2,
     State_LearnAboutBurningMan1 = 3,
     State_LearnAboutGate = 4,
-    State_Shop = 5
+    State_Shop = 5,
+    State_ExitMenu = 255
 }
 
 _initialize_subroutine_table:
@@ -40,6 +41,7 @@ _you_may:
 
 // **** Variables ****
 _state: .byte State_YouMay
+_space_key_return_state: .byte 0
 
 
 // **** Subroutines ****
@@ -56,10 +58,18 @@ tick: {
     jsr _call_tick_subroutine
     // If a != 0, then that is the next requested state
     beq no_state_change
+    cmp #State_ExitMenu
+    bne still_main_menu
+    // Transition to state RunGame
+    lda #GameState_RunGame
+    rts
+
+still_main_menu:
     sta _state
     jsr _call_initialize_subroutine
 
 no_state_change:
+    lda #0
     rts
 }
 
@@ -152,7 +162,7 @@ _tick_space_key_return: {
     sta PARAM_2
     jsr read_keyboard_press
     bne !not_pressed+
-    lda #State_YouMay
+    lda _space_key_return_state
     rts
 
 !not_pressed:
@@ -223,6 +233,9 @@ _initialize_travel: {
 
 
 _initialize_learn_about_gate: {
+    lda #State_YouMay
+    sta _space_key_return_state
+
     .var line_1 = "like the cities of old, black"
     .var line_2 = "rock city is secured by a"
     .var line_3 = "perimeter fence, and"
@@ -277,6 +290,9 @@ _initialize_learn_about_gate: {
 }
 
 _initialize_shop: {
+    lda #State_ExitMenu
+    sta _space_key_return_state
+
     .var line_1 = "before you head out, you'll need"
     .var line_2 = "to get some supplies. you'll need"
     .var line_3 = "food, plenty of water, and shelter."
@@ -342,6 +358,9 @@ end:
 
 
 _initialize_learn_about_burning_man_1: {
+    lda #State_YouMay
+    sta _space_key_return_state
+
     .var line_1 = "burning man is an annual"
     .var line_2 = "experiment in temporary"
     .var line_3 = "community dedicated to radical"

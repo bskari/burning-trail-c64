@@ -56,3 +56,4 @@ loop:
 #import "functions.asm"
 #import "game_state.asm"
 #import "main_menu_state.asm"
+#import "run_game_state.asm"
