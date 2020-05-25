@@ -89,14 +89,16 @@ _call_tick_subroutine: {
 
 
 _tick_you_may: {
+.var stateList = List().add(State_Travel, State_LearnAboutBurningMan1, State_LearnAboutGate)
+
     ldy #0
 check_next:
     iny
-    cpy #4
+    cpy #stateList.size() + 1
     beq nothing_pressed
-    lda LookupTables.number_key_to_columns_bitmask, y
+    lda LookupTables.number_key_to_row_bitmask, y
     sta PARAM_1
-    lda LookupTables.number_key_to_columns_bitmask, y
+    lda LookupTables.number_key_to_column_bitmask, y
     sta PARAM_2
     jsr read_keyboard_press
     bne check_next
@@ -113,9 +115,9 @@ nothing_pressed:
 _states:
     rts
 
-    .byte State_Travel
-    .byte State_LearnAboutBurningMan1
-    .byte State_LearnAboutGate
+.for (var i = 0; i < stateList.size(); i++) {
+    .byte stateList.get(i)
+}
 }
 
 
@@ -127,7 +129,7 @@ check_next:
     beq nothing_pressed
     lda LookupTables.number_key_to_row_bitmask, y
     sta PARAM_1
-    lda LookupTables.number_key_to_columns_bitmask, y
+    lda LookupTables.number_key_to_column_bitmask, y
     sta PARAM_2
     jsr read_keyboard_press
     bne check_next
