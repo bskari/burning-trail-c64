@@ -8,9 +8,10 @@
 .enum {
     State_YouMay = 1,
     State_Travel = 2,
-    State_LearnAboutBurningMan1 = 3,
+    State_LearnAboutBurningMan = 3,
     State_LearnAboutGate = 4,
     State_Shop = 5,
+    State_SelectDepartureTime = 6,
     State_ExitMenu = 255
 }
 
@@ -18,9 +19,10 @@ _initialize_subroutine_table:
     .word 0  // This space intentionally left blank
     .word _initialize_you_may
     .word _initialize_travel
-    .word _initialize_learn_about_burning_man_1
+    .word _initialize_learn_about_burning_man
     .word _initialize_learn_about_gate
     .word _initialize_shop
+    .word _initialize_select_departure_time
 
 _tick_subroutine_table:
     .word 0  // This space intentionally left blank
@@ -29,6 +31,7 @@ _tick_subroutine_table:
     .word _tick_space_key_return
     .word _tick_space_key_return
     .word _tick_space_key_return
+    .word _tick_select_departure_time
 
 .var space_to_continue = "press space to continue"
 _space_to_continue:
@@ -38,6 +41,8 @@ _space_to_continue:
 _you_may:
 .text you_may
 
+.var question = "what is your choice?"
+_question: .text question
 
 // **** Variables ****
 _state: .byte State_YouMay
@@ -89,12 +94,12 @@ _call_tick_subroutine: {
 
 
 _tick_you_may: {
-.var stateList = List().add(State_Travel, State_LearnAboutBurningMan1, State_LearnAboutGate)
+.var state_list = List().add(State_Travel, State_LearnAboutBurningMan, State_LearnAboutGate)
 
     ldy #0
 check_next:
     iny
-    cpy #stateList.size() + 1
+    cpy #state_list.size() + 1
     beq nothing_pressed
     lda LookupTables.number_key_to_row_bitmask, y
     sta PARAM_1
@@ -115,17 +120,19 @@ nothing_pressed:
 _states:
     rts
 
-.for (var i = 0; i < stateList.size(); i++) {
-    .byte stateList.get(i)
+.for (var i = 0; i < state_list.size(); i++) {
+    .byte state_list.get(i)
 }
 }
 
 
 _tick_travel: {
+.var playerList = List().add(Player_Billionaire, Player_SparklePony, Player_VeteranBurner, Player_Virgin)
+
     ldy #0
 check_next:
     iny
-    cpy #6
+    cpy #playerList.size() + 1
     beq nothing_pressed
     lda LookupTables.number_key_to_row_bitmask, y
     sta PARAM_1
@@ -148,10 +155,43 @@ nothing_pressed:
 _player_types:
     rts
 
-    .byte Player_Billionaire
-    .byte Player_SparklePony
-    .byte Player_VeteranBurner
-    .byte Player_Virgin
+.for (var i = 0; i < playerList.size(); i++) {
+    .byte playerList.get(i)
+}
+}
+
+
+_tick_select_departure_time: {
+.var departure_hour_list = List().add(18, 21, 24, 33, 45)
+    ldy #0
+check_next:
+    iny
+    cpy #departure_hour_list.size() + 1
+    beq nothing_pressed
+    lda LookupTables.number_key_to_row_bitmask, y
+    sta PARAM_1
+    lda LookupTables.number_key_to_column_bitmask, y
+    sta PARAM_2
+    jsr read_keyboard_press
+    bne check_next
+
+    // Something was pressed!
+    lda _departure_hours, y
+    sta GameState.time_hours
+    lda #State_ExitMenu
+    rts
+
+nothing_pressed:
+    lda #0
+
+// This lookup table should never use index 0, so put the first byte as an
+// opcode for rts. Aw yeah, saved a byte!
+_departure_hours:
+    rts
+
+.for (var i = 0; i < departure_hour_list.size(); i++) {
+    .byte departure_hour_list.get(i)
+}
 }
 
 
@@ -211,7 +251,6 @@ _initialize_travel: {
     .var option_2 = "2. be a sparkle pony"
     .var option_3 = "3. be a veteran burner"
     .var option_4 = "4. be a bright-eyed bushy-tailed virgin"
-    .var question = "what is your choice?"
 
     jsr clear_screen
     :draw_string(1, 6, intro_1, _intro_1)
@@ -230,7 +269,6 @@ _initialize_travel: {
     _option_2: .text option_2
     _option_3: .text option_3
     _option_4: .text option_4
-    _question: .text question
 }
 
 
@@ -291,8 +329,9 @@ _initialize_learn_about_gate: {
     _line_15: .text line_15
 }
 
+
 _initialize_shop: {
-    lda #State_ExitMenu
+    lda #State_SelectDepartureTime
     sta _space_key_return_state
 
     .var line_1 = "before you head out, you'll need"
@@ -359,7 +398,7 @@ end:
 }
 
 
-_initialize_learn_about_burning_man_1: {
+_initialize_learn_about_burning_man: {
     lda #State_YouMay
     sta _space_key_return_state
 
@@ -407,6 +446,49 @@ _initialize_learn_about_burning_man_1: {
     _line_11: .text line_11
     _line_12: .text line_12
     _line_13: .text line_13
+}
+
+
+_initialize_select_departure_time: {
+    .var description_1 = "from reno, it's 29 miles east to"
+    .var description_2 = "wadsworth, then 78 miles north to"
+    .var description_3 = "gerlach, and finally 8 miles north to"
+    .var description_4 = "brc. the gate opens at midnight, so"
+    .var description_5 = "don't show up early!"
+    .var option_1 = "1. leave at 6 pm"
+    .var option_2 = "2. leave at 9 pm"
+    .var option_3 = "3. leave at midnight"
+    .var option_4 = "4. leave at 9 am"
+    .var option_5 = "5. leave at 9 pm"
+
+    jsr clear_screen
+
+    :draw_centered_string(6, description_1, _description_1)
+    :draw_centered_string(7, description_2, _description_2)
+    :draw_centered_string(8, description_3, _description_3)
+    :draw_centered_string(9, description_4, _description_4)
+    :draw_centered_string(10, description_5, _description_5)
+
+    :draw_string(1, 12, option_1, _option_1)
+    :draw_string(1, 13, option_2, _option_2)
+    :draw_string(1, 14, option_3, _option_3)
+    :draw_string(1, 15, option_4, _option_4)
+    :draw_string(1, 16, option_5, _option_5)
+
+    :draw_string(1, 18, question, _question)
+
+    rts
+
+    _description_1: .text description_1
+    _description_2: .text description_2
+    _description_3: .text description_3
+    _description_4: .text description_4
+    _description_5: .text description_5
+    _option_1: .text option_1
+    _option_2: .text option_2
+    _option_3: .text option_3
+    _option_4: .text option_4
+    _option_5: .text option_5
 }
 
 

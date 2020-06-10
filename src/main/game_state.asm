@@ -16,6 +16,9 @@ _tick_subroutine_table:
 // **** Variables ****
 player_type: .byte Player_Billionaire
 _state: .byte GameState_MainMenu
+// Hours since day before gate opening at midnight
+time_hours: .byte 0
+time_minutes: .byte 0
 
 // **** Subroutines ****
 
