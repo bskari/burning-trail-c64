@@ -138,3 +138,47 @@ read_keyboard_press: {
 
 previous: .byte 0
 }
+
+
+ripple_colors: {
+    .var rippleColorsList = List().add(
+        BROWN, RED, ORANGE, LIGHT_RED, LIGHT_GRAY, YELLOW, WHITE, WHITE,
+        WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, YELLOW, LIGHT_GRAY,
+        LIGHT_RED, ORANGE, RED, BROWN
+    )
+
+    inc offset
+    lda offset
+    lsr  // Slow the ripple effect down a little
+    lsr
+    cmp #rippleColorsList.size()
+    bcc !continue+
+    lda #0
+    sta offset
+!continue:
+    tay
+
+    ldx #200
+repeat:
+    iny
+    cpy #rippleColorsList.size()
+    bcc !continue+
+    ldy #0
+!continue:
+    lda color, y
+    dex
+    sta CHAR_0_COLOR, x
+    sta CHAR_0_COLOR + 200, x
+    sta CHAR_0_COLOR + 400, x
+    sta CHAR_0_COLOR + 600, x
+    sta CHAR_0_COLOR + 800, x
+    bne repeat
+
+    rts
+
+offset: .byte 0
+color:
+    .for (var i = 0; i < rippleColorsList.size(); i++) {
+        .byte rippleColorsList.get(i)
+    }
+}

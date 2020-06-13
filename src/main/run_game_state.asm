@@ -15,6 +15,7 @@ initialize: {
 
 
 tick: {
+    jsr ripple_colors
     lda #0
     rts
 }

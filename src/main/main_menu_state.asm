@@ -60,6 +60,8 @@ initialize: {
 
 
 tick: {
+    jsr ripple_colors
+
     jsr _call_tick_subroutine
     // If a != 0, then that is the next requested state
     beq no_state_change
