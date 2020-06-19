@@ -60,7 +60,7 @@ loop:
 
 
 .macro initialize_screen() {
-    ldx #BLACK
+    ldx #DARK_GRAY
     stx BORDER_COLOR
     stx BACKGROUND_COLOR
 
@@ -119,4 +119,5 @@ dummy_irq_handler: {
 #import "run_game_state.asm"
 
 *=SPRITE_DATA
+my_assert(mod(SPRITE_DATA, 64) == 0, "Bad SPRITE_DATA boundary")
 .import binary "graphics/Sprites.raw"

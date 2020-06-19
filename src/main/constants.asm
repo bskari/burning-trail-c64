@@ -188,7 +188,7 @@
 .const SPRITE_PLAYER = 64
 .const SPRITE_POINTER_BASE = SCREEN_CHAR + SPRITE_TABLE_OFFSET
 
-.const SPRITE_DATA = $2000
+.const SPRITE_DATA = $1700
 
 
 // ****************

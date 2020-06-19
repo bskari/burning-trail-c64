@@ -455,13 +455,13 @@ _initialize_select_departure_time: {
     .var description_1 = "from reno, it's 29 miles east to"
     .var description_2 = "wadsworth, then 78 miles north to"
     .var description_3 = "gerlach, and finally 8 miles north to"
-    .var description_4 = "brc. the gate opens at midnight, so"
-    .var description_5 = "don't show up early!"
-    .var option_1 = "1. leave at 6 pm"
-    .var option_2 = "2. leave at 9 pm"
-    .var option_3 = "3. leave at midnight"
-    .var option_4 = "4. leave at 9 am"
-    .var option_5 = "5. leave at 9 pm"
+    .var description_4 = "brc. the gate opens at midnight sunday,"
+    .var description_5 = "so don't show up early!"
+    .var option_1 = "1. leave at 18:00 sat"
+    .var option_2 = "2. leave at 21:00 sat"
+    .var option_3 = "3. leave at 00:00 sun"
+    .var option_4 = "4. leave at 09:00 sun"
+    .var option_5 = "5. leave at 21:00 sun"
 
     jsr clear_screen
 
