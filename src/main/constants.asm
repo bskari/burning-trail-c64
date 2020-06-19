@@ -177,7 +177,7 @@
 // **********************************
 // Memory variable location constants
 // **********************************
-.const SCREEN_CHAR = $CC00  // 52224
+.const SCREEN_CHAR = $0400
 .const ZEROPAGE_POINTER_1 = $17
 .const ZEROPAGE_POINTER_2 = $19
 .const PARAM_1 = $03
@@ -187,6 +187,8 @@
 .const NUMBER_OF_SPRITES = 11  // This is number of sprites defined in Sprite Pad
 .const SPRITE_PLAYER = 64
 .const SPRITE_POINTER_BASE = SCREEN_CHAR + SPRITE_TABLE_OFFSET
+
+.const SPRITE_DATA = $2000
 
 
 // ****************
