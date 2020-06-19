@@ -4,6 +4,7 @@
 # fast though, so just put them all together.
 sources = \
   src/main/*.asm \
+  graphics/Sprites.raw \
   ;
 
 .PHONY: all
