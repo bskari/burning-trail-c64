@@ -17,11 +17,14 @@
 }
 
 // I dislike how the built-in assertions always show in the output, so only run
-// them if they fail. I also dislike the order of the arguments, so make them
-// Python-like.
+// them if they fail. I also dislike how it can only check that two values are
+// equal, and I dislike the order of the arguments, so make them Python-like.
 .macro my_assert(expression, message) {
     .if (!(expression)) {
         .assert message, 1, 0
+        // Also force a failure
+        *=$0801
+        lda #0
     }
 }
 
