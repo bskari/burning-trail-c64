@@ -52,9 +52,13 @@ _space_key_return_state: .byte 0
 // **** Subroutines ****
 
 initialize: {
-    lda #State_YouMay
+    //lda #State_YouMay
+    //sta _state
+    //jsr _initialize_you_may
+    // For testing
+    lda #State_SelectDepartureTime
     sta _state
-    jsr _initialize_you_may
+    jsr _initialize_select_departure_time
     rts
 }
 

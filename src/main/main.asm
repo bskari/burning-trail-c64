@@ -62,7 +62,6 @@ loop:
 .macro initialize_screen() {
     ldx #DARK_GRAY
     stx BORDER_COLOR
-    stx BACKGROUND_COLOR
 
     jsr clear_screen
 }
