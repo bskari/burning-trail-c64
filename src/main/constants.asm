@@ -205,3 +205,10 @@
     GameState_MainMenu = 1,
     GameState_RunGame = 2
 }
+
+.enum {
+    PlayerMood_Crusty = 1,
+    PlayerMood_Excited = 2,
+    PlayerMood_Tired = 3,
+    PlayerMood_Exhausted = 4
+}

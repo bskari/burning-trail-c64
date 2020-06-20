@@ -19,6 +19,9 @@ _state: .byte GameState_MainMenu
 // Hours since day before gate opening at midnight
 time_hours: .byte 0
 time_minutes: .byte 0
+player_mood: .byte PlayerMood_Excited
+miles_travelled: .byte 0
+miles_to_next_landmark: .byte 29
 
 // **** Subroutines ****
 

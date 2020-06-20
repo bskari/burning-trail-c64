@@ -7,9 +7,8 @@
 .const _time_row = 15
 .const _weather_row = 16
 .const _mood_row = 17
-.const _bladder_row = 18
-.const _next_landmark_row = 19
-.const _miles_travelled_row = 20
+.const _next_landmark_row = 18
+.const _miles_travelled_row = 19
 
 // **** Subroutines ****
 initialize: {
@@ -41,7 +40,6 @@ _draw_information_background: {
     :draw_string(_colon_column - time.size(), _time_row, time, _time)
     :draw_string(_colon_column - weather.size(), _weather_row, weather, _weather)
     :draw_string(_colon_column - mood.size(), _mood_row, mood, _mood)
-    :draw_string(_colon_column - bladder.size(), _bladder_row, bladder, _bladder)
     :draw_string(_colon_column - next_landmark.size(), _next_landmark_row, next_landmark, _next_landmark)
     :draw_string(_colon_column - miles_travelled.size(), _miles_travelled_row, miles_travelled, _miles_travelled)
 
@@ -51,7 +49,6 @@ _draw_information_background: {
 _time: .text time
 _weather: .text weather
 _mood: .text mood
-_bladder: .text bladder
 _next_landmark: .text next_landmark
 _miles_travelled: .text miles_travelled
 _press_space: .text press_space
@@ -63,6 +60,16 @@ _draw_information: {
 .var sunday = "sun"
 .var monday = "mon"
 
+.var clear = "clear"
+
+.var crusty = "crusty"
+.var excited = "excited"
+.var tired = "tired"
+.var exhausted = "exhausted"
+
+.var miles = "miles"
+
+    // ***** Show the time *****
     lda GameState.time_hours
     // We store hours as total hours since since day before gate open, Saturday 12:01 AM
     cmp #48
@@ -137,11 +144,108 @@ before_sunday:
     adc #'0'
     sta screen_memory(after_day_x_position + 4, _time_row)
 
+    // ***** Show the weather *****
+    :draw_string(_colon_column + 1, _weather_row, clear, _clear)
+
+    // ***** Show the mood *****
+    lda GameState.player_mood
+    cmp PlayerMood_Crusty
+    bne !next+
+    :draw_string(_colon_column + 1, _mood_row, crusty, _crusty)
+    jmp done
+!next:
+    cmp PlayerMood_Excited
+    bne !next+
+    :draw_string(_colon_column + 1, _mood_row, excited, _excited)
+    jmp done
+!next:
+    cmp PlayerMood_Tired
+    bne !next+
+    :draw_string(_colon_column + 1, _mood_row, tired, _tired)
+    jmp done
+!next:
+    :draw_string(_colon_column + 1, _mood_row, exhausted, _exhausted)
+done:
+
+    // ***** Show the next landmark *****
+    // This is always under 100
+    lda GameState.miles_to_next_landmark
+    ldx #0
+!over_10:
+    cmp #10
+    bcc !under_10+
+    sec
+    sbc #10
+    inx
+    jmp !over_10-
+!under_10:
+    tay
+    txa
+    clc
+    adc #'0'
+    sta screen_memory(_colon_column + 1, _next_landmark_row)
+
+    tya
+    // a should now have miles % 10
+    clc
+    adc #'0'
+    sta screen_memory(_colon_column + 2, _next_landmark_row)
+
+    // This should probably be drawn with the background
+    :draw_string(_colon_column + 4, _next_landmark_row, miles, _miles)
+
+    // ***** Show the miles travelled *****
+    lda GameState.miles_travelled
+    // The max here is 115 miles
+    cmp #100
+    bcc !under_100+
+    sec
+    sbc #100
+    ldx #'1'
+    jmp !next+
+!under_100:
+    ldx #'0'
+!next:
+    stx screen_memory(_colon_column + 1, _miles_travelled_row)
+
+    ldx #0
+!over_10:
+    cmp #10
+    bcc !under_10+
+    sec
+    sbc #10
+    inx
+    jmp !over_10-
+!under_10:
+    tay
+    txa
+    clc
+    adc #'0'
+    sta screen_memory(_colon_column + 2, _miles_travelled_row)
+
+    tya
+    // a should now have miles % 10
+    clc
+    adc #'0'
+    sta screen_memory(_colon_column + 3, _miles_travelled_row)
+
+    // This should probably be drawn with the background
+    :draw_string(_colon_column + 5, _miles_travelled_row, miles, _miles)
+
     rts
 
 _saturday: .text saturday
 _sunday: .text sunday
 _monday: .text monday
+
+_clear: .text clear
+
+_excited: .text excited
+_tired: .text tired
+_exhausted: .text exhausted
+_crusty: .text crusty
+
+_miles: .text miles
 }
 
 }  // End namespace
