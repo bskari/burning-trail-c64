@@ -4,11 +4,12 @@
 
 // **** Constants ****
 .const _colon_column = 19
-.const _time_row = 15
-.const _weather_row = 16
-.const _mood_row = 17
-.const _next_landmark_row = 18
-.const _miles_travelled_row = 19
+.const _press_return_row = 15
+.const _time_row = 16
+.const _weather_row = 17
+.const _mood_row = 18
+.const _next_landmark_row = 19
+.const _miles_travelled_row = 20
 
 // **** Subroutines ****
 initialize: {
@@ -28,22 +29,22 @@ tick: {
 
 
 _draw_information_background: {
+.var press_return = "press return to size up the situation"
 .var time = "time:"
 .var weather = "weather:"
 .var mood = "mood:"
 .var bladder = "bladder:"
 .var next_landmark = "next landmark:"
 .var miles_travelled = "miles travelled:"
-.var press_space = "press space bar to continue"
     // Information should be on the lower half of the screen
 
+    :draw_string(_colon_column - miles_travelled.size(), _miles_travelled_row, miles_travelled, _miles_travelled)
     :draw_string(_colon_column - time.size(), _time_row, time, _time)
     :draw_string(_colon_column - weather.size(), _weather_row, weather, _weather)
     :draw_string(_colon_column - mood.size(), _mood_row, mood, _mood)
     :draw_string(_colon_column - next_landmark.size(), _next_landmark_row, next_landmark, _next_landmark)
     :draw_string(_colon_column - miles_travelled.size(), _miles_travelled_row, miles_travelled, _miles_travelled)
 
-    :draw_centered_string(24, press_space, _press_space)
     rts
 
 _time: .text time
@@ -51,7 +52,6 @@ _weather: .text weather
 _mood: .text mood
 _next_landmark: .text next_landmark
 _miles_travelled: .text miles_travelled
-_press_space: .text press_space
 }
 
 
@@ -246,6 +246,107 @@ _exhausted: .text exhausted
 _crusty: .text crusty
 
 _miles: .text miles
+}
+
+
+_draw_information_popup: {
+    // ZEROPAGE_POINTER_1 is text part 1.
+    // PARAM_1 is x length of text part 1.
+    // ZEROPAGE_POINTER_2 is text part 2.
+    // PARAM_2 is x length of text part 2.
+    // We always put the first string as the longer one.
+
+    // Find the x starting point, which is midpoint - half of length
+    lda #40
+    sec
+    sbc PARAM_1
+    lsr
+    sta PARAM_3  // PARAM_3 = halfway - (x / 2) = (whole - x) / 2
+
+    // Draw the top and bottom borders
+.const border_row = 10
+.const upper_border_row_memory = screen_memory(0, border_row)
+.const lower_border_row_memory = screen_memory(0, border_row + 3)
+    tax
+    dex
+    lda #$55  // Upper left rounded corner
+    sta upper_border_row_memory, x
+    lda #$4A  // Lower left rounded corner
+    sta lower_border_row_memory, x
+    lda #$43  // Horizontal bar
+    inx
+    ldy #0
+!repeat:
+    sta upper_border_row_memory, x
+    sta lower_border_row_memory, x
+    inx
+    iny
+    cpy PARAM_1
+    bcc !repeat-
+    lda #$49  // Upper right rounded corner
+    sta upper_border_row_memory, x
+    lda #$4B  // Lower right rounded corner
+    sta lower_border_row_memory, x
+
+    // Draw the first line of text
+.const text_row_memory_1 = screen_memory(0, border_row + 1)
+    .break
+    ldx PARAM_3
+    dex
+    lda #$5D  // Vertical bar
+    sta text_row_memory_1, x
+    inx
+    ldy #0
+!repeat:
+    lda (ZEROPAGE_POINTER_1), y
+    sta text_row_memory_1, x
+    inx
+    iny
+    cpy PARAM_1
+    bcc !repeat-
+    lda #$5D  // Vertical bar
+    sta text_row_memory_1, x
+
+    // Draw the second line of text
+.const text_row_memory_2 = screen_memory(0, border_row + 2)
+    // Draw the second vertical bar first. We know that line 1 is longer than
+    // line 2, and x is currently pointing at the correct offset, so just write
+    // it now.
+    lda #$5D  // Vertical bar
+    sta text_row_memory_2, x
+    ldx PARAM_3
+    dex
+    sta text_row_memory_2, x
+    inx
+    ldy #0
+!repeat:
+    lda (ZEROPAGE_POINTER_2), y
+    sta text_row_memory_2, x
+    inx
+    iny
+    cpy PARAM_2
+    bcc !repeat-
+    // The second vertical bar was already drawn above
+
+    rts
+}
+.macro _call_draw_information_popup(string_1, string_1_address, string_2, string_2_address) {
+    :my_assert(string_1.size() <= 38, "string_1 is too long")
+    :my_assert(string_2.size() <= 38, "string_2 is too long")
+    :my_assert(string_1.size() >= string_2.size(), "string_1 should be longer than string_2")
+    lda #string_1.size()
+    sta PARAM_1
+    lda #string_2.size()
+    sta PARAM_2
+    lda #<string_1_address
+    sta ZEROPAGE_POINTER_1
+    lda #>string_1_address
+    sta ZEROPAGE_POINTER_1 + 1
+    lda #<string_2_address
+    sta ZEROPAGE_POINTER_2
+    lda #>string_2_address
+    sta ZEROPAGE_POINTER_2 + 1
+    jsr _draw_information_popup
 }
 
 }  // End namespace
