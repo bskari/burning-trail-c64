@@ -70,16 +70,87 @@ _next_landmark: .byte NextLandmark_Wadsworth
 initialize: {
     jsr clear_screen
     jsr _draw_information_background
+
+    // **** Set up the sprites ****
+
+    lda SPRITE_ENABLE
+    ora #%00000011
+    sta SPRITE_ENABLE
+
+    // Load the car sprite offset into a
+    ldy GameState.player_type
+    cpy Player_Billionaire
+    beq !next+
+    lda #4
+    jmp set_sprite_pointers
+!next:
+    cpy Player_VeteranBurner
+    beq !next+
+    lda #2
+    jmp set_sprite_pointers
+!next:
+    lda #0
+set_sprite_pointers:
+
+    // Once we have the offset, set the pointer
+.break
+    clc
+    adc #(SPRITE_DATA / 64)
+    sta SPRITE_POINTER_BASE + 0
+    adc #1
+    sta SPRITE_POINTER_BASE + 1
+
+.const sprite_x_base = 40
+    lda #sprite_x_base
+    sta sprite_x(0)
+    lda #sprite_x_base + 24
+    sta sprite_x(1)
+
+done:
     rts
 }
 
 
 tick: {
-    jsr ripple_colors
-    jsr _draw_information
-
+    jsr _animate
     lda #0
     rts
+}
+
+
+_animate: {
+    jsr ripple_colors
+
+    // We draw a 2-second cycle: 1 second of animation, 1 second off
+    ldy timer
+    cpy #60
+    bcc animate
+
+    // Pause for 1 second
+    cpy #120
+    bcc done
+    ldy #0
+    sty timer
+
+    jmp done
+
+    // Animate the car up and down
+animate:
+
+.const sprite_y_base = 80
+    tya  // Load timer into a
+    and #%00001000
+    lsr
+    clc
+    adc #sprite_y_base
+    sta sprite_y(0)
+    sta sprite_y(1)
+
+done:
+    inc timer
+    rts
+
+timer: .byte 0
 }
 
 
