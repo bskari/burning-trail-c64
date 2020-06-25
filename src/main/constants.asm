@@ -43,15 +43,15 @@
 .const CHARACTER_ROM = $D000  // 53248
 .const SPRITE_TABLE_OFFSET = 1016
 .const SPRITE_XY = $D000  // 53248
-.function spriteX(spriteNumber) {
-    .if (spriteNumber < 8) {
-        .return spriteNumber * 2 + SPRITE_XY
+.function sprite_x(sprite_number) {
+    .if (sprite_number < 8) {
+        .return sprite_number * 2 + SPRITE_XY
     }
     .assert "Bad sprite number", 0, 1
 }
-.function spriteY(spriteNumber) {
-    .if (spriteNumber < 8) {
-        .return spriteNumber * 2 + SPRITE_XY + 1
+.function sprite_y(sprite_number) {
+    .if (sprite_number < 8) {
+        .return sprite_number * 2 + SPRITE_XY + 1
     }
     .assert "Bad sprite number", 0, 1
 }
@@ -111,16 +111,16 @@
 .const SPRITE_EXTRA_COLOR_1 = $D025  // 53285 multicolor mode
 .const SPRITE_EXTRA_COLOR_2 = $D026  // 53286 multicolor mode
 .const SPRITE_0_COLOR = $D027  // 53287
-.function spriteColor(spriteNumber) {
-    .if (spriteNumber < 8) {
-        .return SPRITE_0_COLOR + spriteNumber
+.function sprite_color(sprite_number) {
+    .if (sprite_number < 8) {
+        .return SPRITE_0_COLOR + sprite_number
     }
     .assert "Bad sprite number", 0, 1
 }
 .const CHAR_0_COLOR = $D800  // 55296
-.function charColor(charNumber) {
-    .if (charNumber < X_CHARS * Y_CHARS) {
-        .return CHAR_0_COLOR + charNumber
+.function char_color(char_number) {
+    .if (char_number < X_CHARS * Y_CHARS) {
+        .return CHAR_0_COLOR + char_number
     }
     .assert "Bad char number", 0, 1
 }
@@ -188,7 +188,7 @@
 .const SPRITE_PLAYER = 64
 .const SPRITE_POINTER_BASE = SCREEN_CHAR + SPRITE_TABLE_OFFSET
 
-.const SPRITE_DATA = $1700
+.const SPRITE_DATA = $1800
 
 
 // ****************
@@ -204,11 +204,4 @@
 .enum {
     GameState_MainMenu = 1,
     GameState_RunGame = 2
-}
-
-.enum {
-    PlayerMood_Crusty = 1,
-    PlayerMood_Excited = 2,
-    PlayerMood_Tired = 3,
-    PlayerMood_Exhausted = 4
 }
