@@ -458,9 +458,9 @@ _initialize_learn_about_burning_man: {
 _initialize_select_departure_time: {
     .var description_1 = "from reno, it's 29 miles east to"
     .var description_2 = "wadsworth, then 78 miles north to"
-    .var description_3 = "gerlach, and finally 8 miles north to"
-    .var description_4 = "brc. the gate opens at midnight sunday,"
-    .var description_5 = "so don't show up early!"
+    .var description_3 = "gerlach, then 8 miles north to"
+    .var description_4 = "gate. the gate opens at midnight,"
+    .var description_5 = "sunday, so don't show up early!"
     .var option_1 = "1. leave at 18:00 sat"
     .var option_2 = "2. leave at 21:00 sat"
     .var option_3 = "3. leave at 00:00 sun"

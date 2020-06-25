@@ -3,7 +3,7 @@
 .encoding "screencode_mixed"
 
 // This creates a basic start
-*=$0801
+*=$0801 "program"
     // SYS 2064
 .byte $0C,$08,$0A,$00,$9E,$20,$32,$30,$36,$34,$00,$00,$00,$00,$00
 
@@ -117,6 +117,6 @@ dummy_irq_handler: {
 #import "main_menu_state.asm"
 #import "run_game_state.asm"
 
-*=SPRITE_DATA
+*=SPRITE_DATA "sprite data"
 my_assert(mod(SPRITE_DATA, 64) == 0, "Bad SPRITE_DATA boundary")
 .import binary "graphics/Sprites.raw"

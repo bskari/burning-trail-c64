@@ -11,6 +11,61 @@
 .const _next_landmark_row = 19
 .const _miles_travelled_row = 20
 
+.enum {
+    PlayerMood_Crusty = 1,
+    PlayerMood_Excited = 2,
+    PlayerMood_Tired = 3,
+    PlayerMood_Exhausted = 4
+}
+
+.enum {
+    NextLandmark_Wadsworth = 0,
+    NextLandmark_Gerlach = 1,
+    NextLandmark_Gate = 2,
+    NextLandmark_Brc = 3,
+    NextLandmark_Initial = 255
+}
+_landmark_distance:
+    .byte 29
+    .byte 29 + 78
+    .byte 29 + 78 + 8
+    .byte 29 + 78 + 8 + 5
+
+// We store gate wait times in 2 hour chunks
+_wait_time_hours_by_2_hour_intervals:
+    .byte 2  // -24
+    .byte 2  // -22
+    .byte 2  // -20
+    .byte 1  // -18
+    .byte 1  // -16
+    .byte 1  // -14
+    .byte 2  // -12
+    .byte 2  // -10
+    .byte 2  // -8
+    .byte 3  // -6
+    .byte 3  // -4
+    .byte 2  // -2
+    .byte 2  // 0
+    .byte 2  // 2
+    .byte 3  // 4
+    .byte 3  // 6
+    .byte 4  // 8
+    .byte 4  // 10
+    .byte 4  // 12
+    .byte 3  // 14
+    .byte 5  // 16
+    .byte 3  // 18
+    .byte 3  // 20
+    .byte 2  // 22
+    .byte 3  // 24
+    // Pretty much everything after this is 2, except for a dip at 38
+
+// **** Variables ****
+_player_mood: .byte PlayerMood_Excited
+_miles_travelled: .byte 0
+_miles_to_next_landmark: .byte 29
+_next_landmark: .byte NextLandmark_Wadsworth
+
 // **** Subroutines ****
 initialize: {
     jsr clear_screen
@@ -148,7 +203,7 @@ before_sunday:
     :draw_string(_colon_column + 1, _weather_row, clear, _clear)
 
     // ***** Show the mood *****
-    lda GameState.player_mood
+    lda _player_mood
     cmp PlayerMood_Crusty
     bne !next+
     :draw_string(_colon_column + 1, _mood_row, crusty, _crusty)
@@ -169,7 +224,7 @@ done:
 
     // ***** Show the next landmark *****
     // This is always under 100
-    lda GameState.miles_to_next_landmark
+    lda _miles_to_next_landmark
     ldx #0
 !over_10:
     cmp #10
@@ -195,7 +250,7 @@ done:
     :draw_string(_colon_column + 4, _next_landmark_row, miles, _miles)
 
     // ***** Show the miles travelled *****
-    lda GameState.miles_travelled
+    lda _miles_travelled
     // The max here is 115 miles
     cmp #100
     bcc !under_100+
@@ -347,6 +402,26 @@ _draw_information_popup: {
     lda #>string_2_address
     sta ZEROPAGE_POINTER_2 + 1
     jsr _draw_information_popup
+}
+
+
+_get_wait_time: {
+    lda GameState.time_hours
+    cmp #50
+    bcs over_50
+    lsr
+    tax
+    lda _wait_time_hours_by_2_hour_intervals
+    rts
+over_50:
+    // There's a small dip at 38
+    cmp #24 + 38
+    beq equal_24_38
+    lda #2
+    rts
+equal_24_38:
+    lda #1
+    rts
 }
 
 }  // End namespace

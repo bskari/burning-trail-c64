@@ -23,7 +23,7 @@
     .if (!(expression)) {
         .assert message, 1, 0
         // Also force a failure
-        *=$0801
+        *=$0801 "my_assert failed"
         lda #0
     }
 }
