@@ -188,7 +188,9 @@
 .const SPRITE_PLAYER = 64
 .const SPRITE_POINTER_BASE = SCREEN_CHAR + SPRITE_TABLE_OFFSET
 
-.const SPRITE_DATA = $1800
+// I don't know why but setting this to $1800 or other things garbles the
+// sprite, so leave it at $2000 for now
+.const SPRITE_DATA = $2000
 
 
 // ****************

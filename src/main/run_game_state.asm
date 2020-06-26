@@ -80,12 +80,12 @@ initialize: {
     // Load the car sprite offset into a
     ldy GameState.player_type
     cpy Player_Billionaire
-    beq !next+
+    bne !next+
     lda #4
     jmp set_sprite_pointers
 !next:
     cpy Player_VeteranBurner
-    beq !next+
+    bne !next+
     lda #2
     jmp set_sprite_pointers
 !next:
@@ -93,18 +93,29 @@ initialize: {
 set_sprite_pointers:
 
     // Once we have the offset, set the pointer
-.break
     clc
     adc #(SPRITE_DATA / 64)
     sta SPRITE_POINTER_BASE + 0
     adc #1
     sta SPRITE_POINTER_BASE + 1
 
-.const sprite_x_base = 40
+.const sprite_x_base = 280
     lda #sprite_x_base
     sta sprite_x(0)
     lda #sprite_x_base + 24
     sta sprite_x(1)
+
+.var x_extended = 0
+.if (sprite_x_base > 255) {
+    .eval x_extended = 1
+}
+.if (sprite_x_base + 24 > 255) {
+    .eval x_extended = x_extended | %10
+}
+.if (x_extended != 0) {
+    lda #x_extended
+    sta SPRITE_X_EXTENDED
+}
 
 done:
     rts
@@ -137,7 +148,7 @@ _animate: {
     // Animate the car up and down
 animate:
 
-.const sprite_y_base = 80
+.const sprite_y_base = 120
     tya  // Load timer into a
     and #%00001000
     lsr
