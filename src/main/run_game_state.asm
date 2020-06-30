@@ -63,8 +63,8 @@ _wait_time_hours_by_2_hour_intervals:
 // **** Variables ****
 _player_mood: .byte PlayerMood_Excited
 _miles_travelled: .byte 0
-_miles_to_next_landmark: .byte 29
 _next_landmark: .byte NextLandmark_Wadsworth
+_waiting_for_input: .byte 0
 
 // **** Subroutines ****
 initialize: {
@@ -117,6 +117,8 @@ set_sprite_pointers:
     sta SPRITE_X_EXTENDED
 }
 
+    jsr _draw_information
+
 done:
     rts
 }
@@ -132,17 +134,53 @@ tick: {
 _animate: {
     jsr ripple_colors
 
+    lda _waiting_for_input
+    beq !continue+
+    // Check for space
+    lda #%0111_1111
+    sta PARAM_1
+    lda #%0001_0000
+    sta PARAM_2
+    jsr read_keyboard_press
+    // If no keys were pressed, it returns $FF
+    cmp #$FF
+    bne clear_screen_and_redraw
+    rts
+clear_screen_and_redraw:
+    jsr clear_screen
+    jsr _draw_information_background
+    jsr _draw_information
+    lda #0
+    sta _waiting_for_input
+!continue:
+
     // We draw a 2-second cycle: 1 second of animation, 1 second off
     ldy timer
     cpy #60
     bcc animate
+    bne skip_update
+
+    // We only need to update the information periodically, like how the Oregon
+    // Trail game did
+    jsr _update_state
+    // If we reached a landmark, tell them the next landmark
+    bne no_landmark_reached
+    jsr _draw_information
+    jsr _popup_next_landmark
+    lda #1
+    sta _waiting_for_input
+    sta timer
+    rts
+
+no_landmark_reached:
+    jsr _draw_information
+skip_update:
 
     // Pause for 1 second
     cpy #120
     bcc done
     ldy #0
     sty timer
-
     jmp done
 
     // Animate the car up and down
@@ -305,8 +343,11 @@ before_sunday:
 done:
 
     // ***** Show the next landmark *****
-    // This is always under 100
-    lda _miles_to_next_landmark
+    // Miles to next landmark is always under 100
+    ldx _next_landmark
+    lda _landmark_distance, x
+    sec
+    sbc _miles_travelled
     ldx #0
 !over_10:
     cmp #10
@@ -401,7 +442,7 @@ _draw_information_popup: {
     sta PARAM_3  // PARAM_3 = halfway - (x / 2) = (whole - x) / 2
 
     // Draw the top and bottom borders
-.const border_row = 10
+.const border_row = 11
 .const upper_border_row_memory = screen_memory(0, border_row)
 .const lower_border_row_memory = screen_memory(0, border_row + 3)
     tax
@@ -427,7 +468,6 @@ _draw_information_popup: {
 
     // Draw the first line of text
 .const text_row_memory_1 = screen_memory(0, border_row + 1)
-    .break
     ldx PARAM_3
     dex
     lda #$5D  // Vertical bar
@@ -504,6 +544,108 @@ over_50:
 equal_24_38:
     lda #1
     rts
+}
+
+
+// Updates the game state. Returns 0 if a no landmark was reached.
+_update_state: {
+.const minutes_increment = 5
+    // Update the time
+    lda GameState.time_minutes
+    clc
+    adc #minutes_increment
+    cmp #60
+    bcc !continue+
+    inc GameState.time_hours
+:my_assert(mod(60, minutes_increment) == 0, "bad minutes increment")
+    lda #0
+!continue:
+    sta GameState.time_minutes
+
+    // Update the distance travelled
+    // Our speed depends on where we are: highway? gate?
+    lda _next_landmark
+    cmp #NextLandmark_Gate
+    bcs not_highway
+    // Speed limit is 65 MPH, so just round down and call it 60 MPH
+    lda _miles_travelled
+    // Carry is already clear
+    adc #minutes_increment
+    jmp check_next_landmark
+not_highway:
+    // TODO: Other slower speeds
+    inc _miles_travelled
+    lda _miles_travelled
+
+check_next_landmark:
+    // Are we at the next landmark? a has _miles_travelled
+    sta PARAM_1  // Temp
+    ldx _next_landmark
+    lda _landmark_distance, x
+    cmp PARAM_1
+    bcs not_reached_landmark
+    // If we are, just set the miles traveled to it
+    sta _miles_travelled
+    inc _next_landmark
+    lda #0
+    jmp !continue+
+not_reached_landmark:
+    lda PARAM_1
+    sta _miles_travelled
+    lda #1
+!continue:
+
+    rts
+}
+
+
+// Draws a popup with information about distance to the next landmark
+_popup_next_landmark: {
+    lda _next_landmark
+    :my_assert(NextLandmark_Wadsworth == 0, "unexpected enum value")
+    bne !next+
+    // We need to jump to a location instead of just calling the macro because
+    // bne has a limit to how far it can jump, and the macro makes it too long
+    jmp _draw_popup_1
+!next:
+    cmp #NextLandmark_Gerlach
+    bne !next+
+    jmp _draw_popup_2
+!next:
+    cmp #NextLandmark_Gate
+    bne !next+
+    jmp _draw_popup_3
+!next:
+.var message_4_1 = "home stretch! just 5 more" 
+.var message_4_2 = "miles to go via gate road"
+    :_call_draw_information_popup(message_4_1, _message_4_1, message_4_2, _message_4_2)
+    rts
+
+.var message_1_1 = "from reno it is 29 miles east"
+.var message_1_2 = "to wadsworth via i-80"
+.var message_2_1 = "from wadsworth it is 78 miles"
+.var message_2_2 = "north to gerlach via nv-447"
+.var message_3_1 = "from gerlach it is 8"
+.var message_3_2 = "miles to gate road"
+
+_draw_popup_1:
+    :_call_draw_information_popup(message_1_1, _message_1_1, message_1_2, _message_1_2)
+    rts
+_draw_popup_2:
+    :_call_draw_information_popup(message_2_1, _message_2_1, message_2_2, _message_2_2)
+    rts
+_draw_popup_3:
+    :_call_draw_information_popup(message_3_1, _message_3_1, message_3_2, _message_3_2)
+    rts
+
+_message_1_1: .text message_1_1
+_message_1_2: .text message_1_2
+_message_2_1: .text message_2_1
+_message_2_2: .text message_2_2
+_message_3_1: .text message_3_1
+_message_3_2: .text message_3_2
+_message_4_1: .text message_4_1
+_message_4_2: .text message_4_2
 }
 
 }  // End namespace
