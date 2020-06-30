@@ -2,6 +2,7 @@
 
 .namespace LookupTables {
 // Used when checking keyboard
+// TODO(space): 0 key is unused
 number_key_to_row_bitmask:
     .byte %1110_1111  // 0 key, row 4
     .byte %0111_1111  // 1 key, row 7

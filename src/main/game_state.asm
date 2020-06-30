@@ -5,10 +5,12 @@
 
 // **** Constants ****
 _initialize_subroutine_table:
+    // TODO(space): Remove this first entry to save space
     .word 0  // This space intentionally left blank
     .word MainMenuState.initialize
     .word RunGameState.initialize
 _tick_subroutine_table:
+    // TODO(space): Remove this first entry to save space
     .word 0  // This space intentionally left blank
     .word MainMenuState.tick
     .word RunGameState.tick

@@ -16,6 +16,7 @@
 }
 
 _initialize_subroutine_table:
+    // TODO(space): Remove this entry to save space
     .word 0  // This space intentionally left blank
     .word _initialize_you_may
     .word _initialize_travel
@@ -25,6 +26,7 @@ _initialize_subroutine_table:
     .word _initialize_select_departure_time
 
 _tick_subroutine_table:
+    // TODO(space): Remove this entry to save space
     .word 0  // This space intentionally left blank
     .word _tick_you_may
     .word _tick_travel

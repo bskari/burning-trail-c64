@@ -138,6 +138,26 @@ read_keyboard_press: {
 
 previous: .byte 0
 }
+.function keyboard_row(character) {
+    .var table = Hashtable()
+    .eval table.put('0', %1110_1111)  // 0 key, row 4
+    .eval table.put('1', %0111_1111)  // 1 key, row 7
+    .eval table.put('2', %0111_1111)  // 2 key, row 7
+    .eval table.put('3', %1111_1101)  // 3 key, row 1
+    .eval table.put('4', %1111_1101)  // 4 key, row 1
+    .eval table.put('5', %1111_1011)  // 5 key, row 2
+    .return table.get(character)
+}
+.function keyboard_column(character) {
+    .var table = Hashtable()
+    .eval table.put('0', %0000_1000)  // 0 key, column 3
+    .eval table.put('1', %0000_0001)  // 1 key, column 0
+    .eval table.put('2', %0000_1000)  // 2 key, column 3
+    .eval table.put('3', %0000_0001)  // 3 key, column 0
+    .eval table.put('4', %0000_1000)  // 4 key, column 3
+    .eval table.put('5', %0000_0001)  // 5 key, column 0
+    .return table.get(character)
+}
 
 
 ripple_colors: {
