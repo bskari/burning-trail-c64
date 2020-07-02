@@ -70,6 +70,7 @@ _waiting_for_input: .byte 0
 initialize: {
     jsr clear_screen
     jsr _draw_information_background
+    jsr _draw_highway
 
     // **** Set up the sprites ****
 
@@ -132,8 +133,6 @@ tick: {
 
 
 _animate: {
-    jsr ripple_colors
-
     lda _waiting_for_input
     beq !continue+
     // Check for space
@@ -186,7 +185,7 @@ skip_update:
     // Animate the car up and down
 animate:
 
-.const sprite_y_base = 120
+.const sprite_y_base = 80
     tya  // Load timer into a
     and #%00001000
     lsr
@@ -524,6 +523,37 @@ _draw_information_popup: {
     lda #>string_2_address
     sta ZEROPAGE_POINTER_2 + 1
     jsr _draw_information_popup
+}
+
+
+_draw_highway: {
+.const row = 2
+.const offset = 40 * row + 25
+    ldx #-40
+    lda #$43  // Dash
+!repeat:
+    // Draw two lines at a time, then two blanks
+    sta DEFAULT_SCREEN_MEMORY + offset, x
+    inx
+    sta DEFAULT_SCREEN_MEMORY + offset, x
+    inx
+    inx
+    inx
+    bmi !repeat-
+
+    ldx #-40
+    lda #YELLOW
+!repeat:
+    // Draw two lines at a time, then two blanks
+    sta CHAR_0_COLOR + offset, x
+    inx
+    sta CHAR_0_COLOR + offset, x
+    inx
+    inx
+    inx
+    bmi !repeat-
+
+    rts
 }
 
 
