@@ -4,13 +4,13 @@
 
 // **** Constants ****
 .const _colon_column = 19
-.const _press_return_row = 15
-.const _time_row = 18
+.const _press_return_row = 18
+.const _time_row = _press_return_row + 1
 .const _weather_row = _time_row + 1
 .const _mood_row = _weather_row + 1
 .const _next_landmark_row = _mood_row + 1
 .const _miles_travelled_row = _next_landmark_row + 1
-.const _white_rows = 25 - _time_row + 1
+.const _white_rows = 25 - _press_return_row
 .const _white_line_number = 250 - 8 * _white_rows
 
 .enum {
@@ -76,9 +76,9 @@ initialize: {
 
     // Set up raster interrupt, top half white, bottom black
     sei
-    lda #<top_irq_handler
+    lda #<irq_handler
     sta $FFFE
-    lda #>top_irq_handler
+    lda #>irq_handler
     sta $FFFF
     // We don't need to set the raster line, just use whatever it's currently
     // set to - we'll reset it in top_irq_handler anyway
@@ -89,9 +89,19 @@ initialize: {
     ldx #250
 !repeat:
     dex
+    // These 2 stas will overlap some, but that's fine
     sta CHAR_0_COLOR + 1000 - 10 * 40, x
     sta CHAR_0_COLOR + 750, x
     bne !repeat-
+
+    // Set the "press enter" text part of the screen to be white
+    lda #WHITE
+    ldx #40
+!repeat:
+    dex
+    sta CHAR_0_COLOR + 40 * _press_return_row, x
+    bne !repeat-
+
 
     // **** Set up the sprites ****
 
@@ -228,12 +238,10 @@ _draw_information_background: {
 .var time = "time:"
 .var weather = "weather:"
 .var mood = "mood:"
-.var bladder = "bladder:"
 .var next_landmark = "next landmark:"
 .var miles_travelled = "miles travelled:"
     // Information should be on the lower half of the screen
-
-    :draw_string(_colon_column - miles_travelled.size(), _miles_travelled_row, miles_travelled, _miles_travelled)
+    :draw_string(1, _press_return_row, press_return, _press_return)
     :draw_string(_colon_column - time.size(), _time_row, time, _time)
     :draw_string(_colon_column - weather.size(), _weather_row, weather, _weather)
     :draw_string(_colon_column - mood.size(), _mood_row, mood, _mood)
@@ -242,6 +250,7 @@ _draw_information_background: {
 
     rts
 
+_press_return: .text press_return
 _time: .text time
 _weather: .text weather
 _mood: .text mood
@@ -700,43 +709,57 @@ _message_4_2: .text message_4_2
 }
 
 
-top_irq_handler: {
+// Split the screen into different background color horizontal strips
+irq_handler: {
+.var _colors = List().add(BLACK, GRAY, BLACK, BLACK, WHITE)
+//.var _lines = List().add(150, 192, 201, 0)
+.var _lines = List().add(105, 129, 192, 201, 0)
+
+    pha
+    txa
     pha
 
-    lda #BLACK
+    // By the time we set the BACKGROUND_COLOR below, we've already rendered
+    // part of the screen, which makes the color tear, and because of bad
+    // lines, it also wiggles. So burn some time until the render beam is in
+    // the border.
+    ldx #20
+burn_time:
+    dex
+    bne burn_time
+
+
+    ldx index
+    lda colors, x
     sta BACKGROUND_COLOR
 
-    lda #<bottom_irq_handler
-    sta $FFFE
-    lda #>bottom_irq_handler
-    sta $FFFF
-
-    lda #_white_line_number
+    lda lines, x
     sta RASTER_LINE_INTERRUPT
 
-    jmp acknowledge_interrupt
-}
+    dec index
+    bpl continue
+    lda #_colors.size() - 1
+    sta index
+continue:
 
-
-bottom_irq_handler: {
-    pha
-
-    lda #WHITE
-    sta BACKGROUND_COLOR
-
-    lda #<top_irq_handler
-    sta $FFFE
-    lda #>top_irq_handler
-    sta $FFFF
-
-    lda #0
-    sta RASTER_LINE_INTERRUPT
-}
-acknowledge_interrupt: {
     // Acknowledge the interrupt
     inc $D019
     pla
+    tax
+    pla
     rti
+
+index: .byte _colors.size() - 1
+// We store the list of colors in reverse order, so we can dec and use bpl
+// instead of having an additional cmp
+colors:
+.for (var i = _colors.size() - 1; i >= 0; i--) {
+    .byte _colors.get(i)
+}
+lines:
+.for (var i = _lines.size() - 1; i >= 0; i--) {
+    .byte _lines.get(i)
+}
 }
 
 
