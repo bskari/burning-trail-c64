@@ -5,11 +5,13 @@
 // **** Constants ****
 .const _colon_column = 19
 .const _press_return_row = 15
-.const _time_row = 16
-.const _weather_row = 17
-.const _mood_row = 18
-.const _next_landmark_row = 19
-.const _miles_travelled_row = 20
+.const _time_row = 18
+.const _weather_row = _time_row + 1
+.const _mood_row = _weather_row + 1
+.const _next_landmark_row = _mood_row + 1
+.const _miles_travelled_row = _next_landmark_row + 1
+.const _white_rows = 25 - _time_row + 1
+.const _white_line_number = 250 - 8 * _white_rows
 
 .enum {
     PlayerMood_Crusty = 1,
@@ -71,6 +73,25 @@ initialize: {
     jsr clear_screen
     jsr _draw_information_background
     jsr _draw_highway
+
+    // Set up raster interrupt, top half white, bottom black
+    sei
+    lda #<top_irq_handler
+    sta $FFFE
+    lda #>top_irq_handler
+    sta $FFFF
+    // We don't need to set the raster line, just use whatever it's currently
+    // set to - we'll reset it in top_irq_handler anyway
+    cli
+
+    // Set the bottom half of text to be black
+    lda #BLACK
+    ldx #250
+!repeat:
+    dex
+    sta CHAR_0_COLOR + 1000 - 10 * 40, x
+    sta CHAR_0_COLOR + 750, x
+    bne !repeat-
 
     // **** Set up the sprites ****
 
@@ -677,5 +698,46 @@ _message_3_2: .text message_3_2
 _message_4_1: .text message_4_1
 _message_4_2: .text message_4_2
 }
+
+
+top_irq_handler: {
+    pha
+
+    lda #BLACK
+    sta BACKGROUND_COLOR
+
+    lda #<bottom_irq_handler
+    sta $FFFE
+    lda #>bottom_irq_handler
+    sta $FFFF
+
+    lda #_white_line_number
+    sta RASTER_LINE_INTERRUPT
+
+    jmp acknowledge_interrupt
+}
+
+
+bottom_irq_handler: {
+    pha
+
+    lda #WHITE
+    sta BACKGROUND_COLOR
+
+    lda #<top_irq_handler
+    sta $FFFE
+    lda #>top_irq_handler
+    sta $FFFF
+
+    lda #0
+    sta RASTER_LINE_INTERRUPT
+}
+acknowledge_interrupt: {
+    // Acknowledge the interrupt
+    inc $D019
+    pla
+    rti
+}
+
 
 }  // End namespace

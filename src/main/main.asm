@@ -14,22 +14,31 @@ main: {
     :initialize_sprites()
 
     // Turn off CIA timer interrupts
-    ldy #%01111111
-    sty INTERRUPT_CONTROL_1
-    sty INTERRUPT_CONTROL_2
-    // Cancel CIA-IRQs in flight
-    lda INTERRUPT_CONTROL_1
-    lda INTERRUPT_CONTROL_2
+    lda #%0111_1111
+    sta INTERRUPT_CONTROL_1  // $DC0D
+    sta INTERRUPT_CONTROL_2  // $DD0D
 
     // $d012 is the current raster line, and bit #7 of d011 is the 9th bit of
     // that value. We need to make sure it's 0 for our intro.
-    lda SCREEN_CONTROL_1
-    and #%01111111
-    sta SCREEN_CONTROL_1
+    and SCREEN_CONTROL_1  // $D011
+    sta SCREEN_CONTROL_1  // $D011
+
+    // Cancel CIA-IRQs in flight
+    lda INTERRUPT_CONTROL_1  // $DC0D
+    lda INTERRUPT_CONTROL_2  // $DD0D
+
+    // Enable raster interrupt signals from VIC
+    lda #%0000_0001
+    sta INTERRUPT_CONTROL_3   // $D01A
+
+    // Just set any raster line as the interrupt. We're doing two interrupts in
+    // irq_handler, and changing the line each tie, so any number will work.
+    lda #0
+    sta RASTER_LINE_INTERRUPT  // $D012
 
     // Set VIC bank to 0
-    lda #%00000011
-    sta VIC_BANK_SETUP
+    lda #%000_00011
+    sta VIC_BANK_SETUP  // $DD00
 
     // Before disabling KERNAL ROM, we need to set the IRQ handler. The default
     // handler is in KERNAL ROM, so if we just disable it, it will crash.
@@ -63,6 +72,16 @@ loop:
     ldx #DARK_GRAY
     stx BORDER_COLOR
 
+    lda #WHITE
+    ldx #250
+repeat:
+    dex
+    sta CHAR_0_COLOR, x
+    sta CHAR_0_COLOR + 250, x
+    sta CHAR_0_COLOR + 500, x
+    sta CHAR_0_COLOR + 750, x
+    bne repeat
+
     jsr clear_screen
 }
 
@@ -94,23 +113,11 @@ loop:
 }
 
 dummy_irq_handler: {
-    pha
-    txa
-    pha
-    tya
-    pha
-
     // Acknowledge the interrupt
     inc $D019
-
-    pla
-    tay
-    pla
-    tax
-    pla
-
     rti
 }
+
 
 #import "functions.asm"
 #import "game_state.asm"

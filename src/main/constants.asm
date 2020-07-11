@@ -155,7 +155,7 @@
 // Write bit #7: Fill bit
 .const INTERRUPT_CONTROL_1 = $DC0D
 // Same as above, but with the above changes
-// Read bit #4: 1 = SIgnal level of FLAG pin
+// Read bit #4: 1 = Signal level of FLAG pin
 // Read bit #7: 1 = A non-maskable interrupt has been generated
 // Write bits #0-#4: Same as above, but generate non-maskable interrupts
 .const INTERRUPT_CONTROL_2 = $DD0D

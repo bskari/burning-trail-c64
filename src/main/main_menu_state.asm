@@ -57,7 +57,7 @@ initialize: {
     //lda #State_YouMay
     //sta _state
     //jsr _initialize_you_may
-    // For testing
+    // TODO: For testing
     lda #State_SelectDepartureTime
     sta _state
     jsr _initialize_select_departure_time
@@ -66,8 +66,6 @@ initialize: {
 
 
 tick: {
-    jsr ripple_colors
-
     jsr _call_tick_subroutine
     // If a != 0, then that is the next requested state
     beq no_state_change

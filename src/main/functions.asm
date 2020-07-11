@@ -54,18 +54,18 @@ wait_step_2:
 }
 
 
-clear_screen: {
+clear_screen:
     lda #' '
+set_screen_to_a:
     ldx #251
-clear:
+!_more_clear_screen:
     dex
     sta DEFAULT_SCREEN_MEMORY, x
     sta DEFAULT_SCREEN_MEMORY + 250, x
     sta DEFAULT_SCREEN_MEMORY + 500, x
     sta DEFAULT_SCREEN_MEMORY + 750, x
-    bne clear
+    bne !_more_clear_screen-
     rts
-}
 
 
 // Reads a single key from the keyboard. Handles debouncing, so it immediately
@@ -160,6 +160,7 @@ previous: .byte 0
 }
 
 
+/*
 ripple_colors: {
     .var rippleColorsList = List().add(
         BROWN, RED, ORANGE, LIGHT_RED, LIGHT_GRAY, YELLOW, WHITE, WHITE,
@@ -202,3 +203,4 @@ color:
         .byte rippleColorsList.get(i)
     }
 }
+*/
