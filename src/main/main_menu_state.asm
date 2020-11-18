@@ -15,25 +15,36 @@
     State_ExitMenu = 255
 }
 
-_initialize_subroutine_table:
-    // TODO(space): Remove this entry to save space
-    .word 0  // This space intentionally left blank
-    .word _initialize_you_may
-    .word _initialize_travel
-    .word _initialize_learn_about_burning_man
-    .word _initialize_learn_about_gate
-    .word _initialize_shop
-    .word _initialize_select_departure_time
+.var initializeSubroutineTable = List().add(
+    _initialize_you_may,
+    _initialize_travel,
+    _initialize_learn_about_burning_man,
+    _initialize_learn_about_gate,
+    _initialize_shop,
+    _initialize_select_departure_time
+).lock()
+_temp_initialize_subroutine_table:
+.for (var i = 0; i < initializeSubroutineTable.size(); i++) {
+    // Use address - 1 for the rts trick
+    .word initializeSubroutineTable.get(i) - 1
+}
+// The first entry is excluded to save space, since states start at 1
+.const _initialize_subroutine_table = _temp_initialize_subroutine_table - 2
 
-_tick_subroutine_table:
-    // TODO(space): Remove this entry to save space
-    .word 0  // This space intentionally left blank
-    .word _tick_you_may
-    .word _tick_travel
-    .word _tick_space_key_return
-    .word _tick_space_key_return
-    .word _tick_space_key_return
-    .word _tick_select_departure_time
+.var tickSubroutineTable = List().add(
+    _tick_you_may,
+    _tick_travel,
+    _tick_space_key_return,
+    _tick_space_key_return,
+    _tick_space_key_return,
+    _tick_select_departure_time
+).lock()
+_temp_tick_subroutine_table:
+.for (var i = 0; i < tickSubroutineTable.size(); i++) {
+    .word tickSubroutineTable.get(i) - 1
+}
+// The first entry is excluded to save space, since states start at 1
+.const _tick_subroutine_table = _temp_tick_subroutine_table - 2
 
 .var space_to_continue = "press space to continue"
 _space_to_continue:
@@ -89,13 +100,11 @@ _call_tick_subroutine: {
     lda _state
     asl
     tax
-    lda _tick_subroutine_table, x
-    sta ZEROPAGE_POINTER_1
     lda _tick_subroutine_table + 1, x
-    sta ZEROPAGE_POINTER_1 + 1
-    jmp (ZEROPAGE_POINTER_1)
-
-    // No rts here because the subroutine will do it
+    pha
+    lda _tick_subroutine_table, x
+    pha
+    rts
 }
 
 
@@ -223,12 +232,11 @@ _call_initialize_subroutine: {
     lda _state
     asl
     tax
-    lda _initialize_subroutine_table, x
-    sta ZEROPAGE_POINTER_1
     lda _initialize_subroutine_table + 1, x
-    sta ZEROPAGE_POINTER_1 + 1
-    jmp (ZEROPAGE_POINTER_1)
-    // No rts here because the subroutine will do it
+    pha
+    lda _initialize_subroutine_table, x
+    pha
+    rts
 }
 
 

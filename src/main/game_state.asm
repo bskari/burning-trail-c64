@@ -4,16 +4,29 @@
 .namespace GameState {
 
 // **** Constants ****
-_initialize_subroutine_table:
-    // TODO(space): Remove this first entry to save space
-    .word 0  // This space intentionally left blank
-    .word MainMenuState.initialize
-    .word RunGameState.initialize
-_tick_subroutine_table:
-    // TODO(space): Remove this first entry to save space
-    .word 0  // This space intentionally left blank
-    .word MainMenuState.tick
-    .word RunGameState.tick
+.var initializeSubroutineTable = List().add(
+    MainMenuState.initialize,
+    RunGameState.initialize
+).lock()
+_temp_initialize_subroutine_table:
+.for (var i = 0; i < initializeSubroutineTable.size(); i++) {
+    // Use address - 1 for the rts trick
+    .word initializeSubroutineTable.get(i) - 1
+}
+// The first entry is excluded to save space, since states start at 1
+.const _initialize_subroutine_table = _temp_initialize_subroutine_table - 2
+
+.var tickSubroutineTable = List().add(
+    MainMenuState.tick,
+    RunGameState.tick
+).lock()
+_temp_tick_subroutine_table:
+.for (var i = 0; i < tickSubroutineTable.size(); i++) {
+    // Use address - 1 for the rts trick
+    .word tickSubroutineTable.get(i) - 1
+}
+// The first entry is excluded to save space, since states start at 1
+.const _tick_subroutine_table = _temp_tick_subroutine_table - 2
 
 // **** Variables ****
 player_type: .byte Player_Billionaire
@@ -29,12 +42,11 @@ _initialize_state: {
     lda _state
     asl
     tax
-    lda _initialize_subroutine_table, x
-    sta ZEROPAGE_POINTER_1
     lda _initialize_subroutine_table + 1, x
-    sta ZEROPAGE_POINTER_1 + 1
-    jmp (ZEROPAGE_POINTER_1)
-    // No rts here because the subroutine will do it
+    pha
+    lda _initialize_subroutine_table, x
+    pha
+    rts
 }
 
 
@@ -59,12 +71,11 @@ _call_tick_subroutine: {
     lda _state
     asl
     tax
-    lda _tick_subroutine_table, x
-    sta ZEROPAGE_POINTER_1
     lda _tick_subroutine_table + 1, x
-    sta ZEROPAGE_POINTER_1 + 1
-    jmp (ZEROPAGE_POINTER_1)
-    // No rts here because the subroutine will do it
+    pha
+    lda _tick_subroutine_table, x
+    pha
+    rts
 }
 
 }
