@@ -123,6 +123,7 @@ dummy_irq_handler: {
 #import "game_state.asm"
 #import "main_menu_state.asm"
 #import "run_game_state.asm"
+#import "size_up_state.asm"
 
 *=SPRITE_DATA "sprite data"
 my_assert(mod(SPRITE_DATA, 64) == 0, "Bad SPRITE_DATA boundary")

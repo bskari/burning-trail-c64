@@ -63,10 +63,12 @@ _wait_time_hours_by_2_hour_intervals:
     // Pretty much everything after this is 2, except for a dip at 38
 
 // **** Variables ****
+_timer: .byte 0  // Animation timer
 _player_mood: .byte PlayerMood_Excited
 _miles_travelled: .byte 0
 _next_landmark: .byte NextLandmark_Wadsworth
 _waiting_for_input: .byte 0
+_size_up_the_situation: .byte 0
 
 // **** Subroutines ****
 initialize: {
@@ -76,6 +78,9 @@ initialize: {
 
     // Set up raster interrupt, top half white, bottom black
     sei
+    // Enable raster interrupt signals from VIC
+    lda #%0000_0001
+    sta INTERRUPT_CONTROL_3   // $D01A
     lda #<irq_handler
     sta $FFFE
     lda #>irq_handler
@@ -157,7 +162,34 @@ done:
 
 
 tick: {
+    // Check for return, to size up the situation
+    lda #%1111_1110
+    sta PARAM_1
+    lda #%0000_0010
+    sta PARAM_2
+    jsr read_keyboard_press
+    // If no keys were pressed, it returns $FF
+    cmp #$FF
+    beq !continue+
+    lda #1
+    sta _size_up_the_situation
+    inc BORDER_COLOR
+
+!continue:
     jsr _animate
+
+    // We only want to size up the situation after the animation
+    // has stopped. The first 60 frames are animated.
+    lda _timer
+    cmp #65
+    bcc return
+
+    lda _size_up_the_situation
+    beq return
+    lda #GameState_SizeUp
+    rts
+
+return:
     lda #0
     rts
 }
@@ -185,7 +217,7 @@ clear_screen_and_redraw:
 !continue:
 
     // We draw a 2-second cycle: 1 second of animation, 1 second off
-    ldy timer
+    ldy _timer
     cpy #60
     bcc animate
     bne skip_update
@@ -194,12 +226,12 @@ clear_screen_and_redraw:
     // Trail game did
     jsr _update_state
     // If we reached a landmark, tell them the next landmark
-    bne no_landmark_reached
+    bcc no_landmark_reached
     jsr _draw_information
     jsr _popup_next_landmark
     lda #1
     sta _waiting_for_input
-    sta timer
+    sta _timer
     rts
 
 no_landmark_reached:
@@ -210,7 +242,7 @@ skip_update:
     cpy #120
     bcc done
     ldy #0
-    sty timer
+    sty _timer
     jmp done
 
     // Animate the car up and down
@@ -226,10 +258,8 @@ animate:
     sta sprite_y(1)
 
 done:
-    inc timer
+    inc _timer
     rts
-
-timer: .byte 0
 }
 
 
@@ -607,7 +637,7 @@ equal_24_38:
 }
 
 
-// Updates the game state. Returns 0 if a no landmark was reached.
+// Updates the game state. Sets carry if a landmark was reached.
 _update_state: {
 .const minutes_increment = 5
     // Update the time
@@ -647,12 +677,12 @@ check_next_landmark:
     // If we are, just set the miles traveled to it
     sta _miles_travelled
     inc _next_landmark
-    lda #0
-    jmp !continue+
+    sec
+    rts
 not_reached_landmark:
     lda PARAM_1
     sta _miles_travelled
-    lda #1
+    clc
 !continue:
 
     rts

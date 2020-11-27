@@ -205,5 +205,6 @@
 
 .enum {
     GameState_MainMenu = 1,
-    GameState_RunGame = 2
+    GameState_RunGame = 2,
+    GameState_SizeUp = 3
 }

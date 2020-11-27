@@ -6,7 +6,8 @@
 // **** Constants ****
 .var initializeSubroutineTable = List().add(
     MainMenuState.initialize,
-    RunGameState.initialize
+    RunGameState.initialize,
+    SizeUpState.initialize
 ).lock()
 _temp_initialize_subroutine_table:
 .for (var i = 0; i < initializeSubroutineTable.size(); i++) {
@@ -18,7 +19,8 @@ _temp_initialize_subroutine_table:
 
 .var tickSubroutineTable = List().add(
     MainMenuState.tick,
-    RunGameState.tick
+    RunGameState.tick,
+    SizeUpState.tick
 ).lock()
 _temp_tick_subroutine_table:
 .for (var i = 0; i < tickSubroutineTable.size(); i++) {
