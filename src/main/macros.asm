@@ -11,6 +11,16 @@
     bpl !loop_text-
 }
 
+// Draw the string at the address in ZEROPAGE_POINTER_1
+.macro draw_string_zeropage_pointer_1(string_var, string_address) {
+    ldy #string_var.size() - 1
+!loop_text:
+    lda string_address, y
+    sta (ZEROPAGE_POINTER_1), y
+    dey
+    bpl !loop_text-
+}
+
 .macro draw_centered_string(y_pos, string_var, string_address) {
     .var x_pos = (40 - string_var.size() - 1) / 2
     :draw_string(x_pos, y_pos, string_var, string_address)

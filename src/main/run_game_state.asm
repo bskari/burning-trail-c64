@@ -231,7 +231,6 @@ clear_screen_and_redraw:
     jsr _popup_next_landmark
     lda #1
     sta _waiting_for_input
-    sta _timer
     rts
 
 no_landmark_reached:
@@ -290,6 +289,19 @@ _miles_travelled: .text miles_travelled
 
 
 _draw_information: {
+    lda #>screen_memory(_colon_column + 1, _time_row)
+    sta ZEROPAGE_POINTER_1 + 1
+    lda #<screen_memory(_colon_column + 1, _time_row)
+    sta ZEROPAGE_POINTER_1
+
+    // Fall through to draw_information
+    // jmp draw_information
+}
+
+
+// Draws the information starting at the position stored in
+// ZEROPAGE_POINTER_1
+draw_information: {
 .var saturday = "sat"
 .var sunday = "sun"
 .var monday = "mon"
@@ -308,21 +320,21 @@ _draw_information: {
     // We store hours as total hours since since day before gate open, Saturday 12:01 AM
     cmp #48
     bcc before_monday
-    :draw_string(_colon_column + 1, _time_row, monday, _monday)
+    :draw_string_zeropage_pointer_1(monday, _monday)
     lda GameState.time_hours
-    sec
+    // Carry should be set
     sbc #48
     jmp !done+
 before_monday:
     cmp #24
     bcc before_sunday
-    :draw_string(_colon_column + 1, _time_row, sunday, _sunday)
+    :draw_string_zeropage_pointer_1(sunday, _sunday)
     lda GameState.time_hours
-    sec
+    // Carry should be set
     sbc #24
     jmp !done+
 before_sunday:
-    :draw_string(_colon_column + 1, _time_row, saturday, _saturday)
+    :draw_string_zeropage_pointer_1(saturday, _saturday)
     lda GameState.time_hours
 !done:
 
@@ -330,78 +342,109 @@ before_sunday:
     cmp #20
     bcc !under_20+
     ldx #'2'
-    sec
+    // Carry should be set
     sbc #20
     jmp !done+
 !under_20:
     cmp #10
     bcc !under_10+
-    sec
+    // Carry should be set
     sbc #10
     ldx #'1'
     jmp !done+
 !under_10:
     ldx #'0'
 !done:
-    .const after_day_x_position = _colon_column + saturday.size() + 2
-    stx screen_memory(after_day_x_position, _time_row)
+
+    ldy #saturday.size() + 1
+    pha
+    txa
+    sta (ZEROPAGE_POINTER_1), y
+    pla
 
     // a should now have hours % 10
     clc
     adc #'0'
-    sta screen_memory(after_day_x_position + 1, _time_row)
+    iny
+    sta (ZEROPAGE_POINTER_1), y
 
     // Now let's do minutes
-    // This colon should probably be drawn with the background
+    // TODO: This colon should probably be drawn with the background
     lda #':'
-    sta screen_memory(after_day_x_position + 2, _time_row)
+    iny
+    sta (ZEROPAGE_POINTER_1), y
 
     lda GameState.time_minutes
     ldx #0
 !over_10:
     cmp #10
     bcc !under_10+
-    sec
+    // We know carry is set now, otherwise we would have branched
     sbc #10
     inx
     jmp !over_10-
 !under_10:
-    tay
+    pha
     txa
-    clc
+    // Carry should be clear
     adc #'0'
-    sta screen_memory(after_day_x_position + 3, _time_row)
+    iny
+    sta (ZEROPAGE_POINTER_1), y
+    pla
 
-    tya
     // a should now have minutes % 10
     clc
     adc #'0'
-    sta screen_memory(after_day_x_position + 4, _time_row)
+    iny
+    sta (ZEROPAGE_POINTER_1), y
 
     // ***** Show the weather *****
-    :draw_string(_colon_column + 1, _weather_row, clear, _clear)
+    lda ZEROPAGE_POINTER_1
+    // Carry should be clear
+    adc #40
+    sta ZEROPAGE_POINTER_1
+    bcc !no_carry+
+    inc ZEROPAGE_POINTER_1 + 1
+!no_carry:
+    :draw_string_zeropage_pointer_1(clear, _clear)
 
     // ***** Show the mood *****
+    lda ZEROPAGE_POINTER_1
+    clc
+    adc #40
+    sta ZEROPAGE_POINTER_1
+    bcc !no_carry+
+    inc ZEROPAGE_POINTER_1 + 1
+!no_carry:
+
     lda _player_mood
     cmp PlayerMood_Crusty
     bne !next+
-    :draw_string(_colon_column + 1, _mood_row, crusty, _crusty)
+    :draw_string_zeropage_pointer_1(crusty, _crusty)
     jmp done
 !next:
     cmp PlayerMood_Excited
     bne !next+
-    :draw_string(_colon_column + 1, _mood_row, excited, _excited)
+    :draw_string_zeropage_pointer_1(excited, _excited)
     jmp done
 !next:
     cmp PlayerMood_Tired
     bne !next+
-    :draw_string(_colon_column + 1, _mood_row, tired, _tired)
+    :draw_string_zeropage_pointer_1(tired, _tired)
     jmp done
 !next:
-    :draw_string(_colon_column + 1, _mood_row, exhausted, _exhausted)
+    :draw_string_zeropage_pointer_1(exhausted, _exhausted)
 done:
 
     // ***** Show the next landmark *****
+    lda ZEROPAGE_POINTER_1
+    clc
+    adc #40
+    sta ZEROPAGE_POINTER_1
+    bcc !no_carry+
+    inc ZEROPAGE_POINTER_1 + 1
+!no_carry:
+
     // Miles to next landmark is always under 100
     ldx _next_landmark
     lda _landmark_distance, x
@@ -411,63 +454,94 @@ done:
 !over_10:
     cmp #10
     bcc !under_10+
-    sec
+    // Carry should be set
     sbc #10
     inx
     jmp !over_10-
 !under_10:
-    tay
+    pha
     txa
-    clc
+    // Carry should be clear
     adc #'0'
-    sta screen_memory(_colon_column + 1, _next_landmark_row)
+    ldy #0
+    sta (ZEROPAGE_POINTER_1), y
+    pla
 
-    tya
     // a should now have miles % 10
-    clc
+    // Carry should be clear
     adc #'0'
-    sta screen_memory(_colon_column + 2, _next_landmark_row)
+    iny
+    sta (ZEROPAGE_POINTER_1), y
 
-    // This should probably be drawn with the background
-    :draw_string(_colon_column + 4, _next_landmark_row, miles, _miles)
+    // TODO: This should probably be drawn with the background
+    lda ZEROPAGE_POINTER_1
+    clc
+    adc #3
+    sta ZEROPAGE_POINTER_1
+    bcc !no_carry+
+    inc ZEROPAGE_POINTER_1 + 1
+!no_carry:
+    :draw_string_zeropage_pointer_1(miles, _miles)
 
     // ***** Show the miles travelled *****
+    lda ZEROPAGE_POINTER_1
+    clc
+    adc #40 - 3
+    sta ZEROPAGE_POINTER_1
+    bcc !no_carry+
+    inc ZEROPAGE_POINTER_1 + 1
+!no_carry:
+
     lda _miles_travelled
     // The max here is 115 miles
     cmp #100
     bcc !under_100+
-    sec
+    // Carry should be set
     sbc #100
     ldx #'1'
     jmp !next+
 !under_100:
     ldx #'0'
 !next:
-    stx screen_memory(_colon_column + 1, _miles_travelled_row)
+    pha
+    txa
+    ldy #0
+    sta (ZEROPAGE_POINTER_1), y
+    pla
 
     ldx #0
 !over_10:
     cmp #10
     bcc !under_10+
-    sec
+    // Carry should be set
     sbc #10
     inx
     jmp !over_10-
 !under_10:
-    tay
+    pha
     txa
-    clc
+    // Carry should be clear
     adc #'0'
-    sta screen_memory(_colon_column + 2, _miles_travelled_row)
+    ldy #1
+    sta (ZEROPAGE_POINTER_1), y
+    pla
 
-    tya
     // a should now have miles % 10
-    clc
+    // Carry should be clear
     adc #'0'
-    sta screen_memory(_colon_column + 3, _miles_travelled_row)
+    ldy #2
+    sta (ZEROPAGE_POINTER_1), y
 
+    // TODO: This should probably be drawn with the background
     // This should probably be drawn with the background
-    :draw_string(_colon_column + 5, _miles_travelled_row, miles, _miles)
+    lda ZEROPAGE_POINTER_1
+    clc
+    adc #4
+    sta ZEROPAGE_POINTER_1
+    bcc !no_carry+
+    inc ZEROPAGE_POINTER_1 + 1
+!no_carry:
+    :draw_string_zeropage_pointer_1(miles, _miles)
 
     rts
 
