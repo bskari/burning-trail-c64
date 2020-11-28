@@ -235,6 +235,7 @@ clear_screen_and_redraw:
 
 no_landmark_reached:
     jsr _draw_information
+    ldy _timer
 skip_update:
 
     // Pause for 1 second
