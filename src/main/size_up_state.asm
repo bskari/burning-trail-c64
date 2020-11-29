@@ -1,15 +1,32 @@
 #importonce
 
 .namespace SizeUpState {
-.const _period_column = 10
-.const _continue_row = 10
-.const _look_at_map_row = _continue_row + 1
-.const _change_pace_row = _look_at_map_row + 1
-.const _stop_to_rest_row = _change_pace_row + 1
-.const _talk_to_people_row = _stop_to_rest_row + 1
 
+// **** Constants ****
+
+.enum {
+    SizeUp_Menu = 1,
+    SizeUp_Continue = 2,
+    SizeUp_Map = 3,
+    SizeUp_ChangePace = 4,
+    SizeUp_Rest = 5,
+    SizeUp_Talk = 6
+}
+.const _period_column = 10
+.const _time_row = 5
+.const _you_may_row = _time_row + 9
+
+.const _colon_column = 19
+
+// **** Variables ****
+_state: .byte SizeUp_Menu
+
+// **** Subroutines ****
 
 initialize: {
+    lda #SizeUp_Menu
+    sta _state
+
     // Disable raster interrupt signals from VIC
     sei
     lda #%0000_0000
@@ -35,10 +52,21 @@ initialize: {
     bne !repeat-
 
     jsr clear_screen
+    jsr _draw_information
     jsr _draw_size_up_background
-do_nothing:
     rts
 }
+
+
+_draw_information: {
+    lda #>screen_memory(_colon_column + 1, _time_row)
+    sta ZEROPAGE_POINTER_1 + 1
+    lda #<screen_memory(_colon_column + 1, _time_row)
+    sta ZEROPAGE_POINTER_1
+
+    jmp RunGameState.draw_information
+}
+
 
 _draw_size_up_background: {
 .var you_may = "you may:"
@@ -48,12 +76,20 @@ _draw_size_up_background: {
 .var stop_to_rest = "4. stop to rest"
 .var talk_to_people = "5. talk to people"
 
-    :draw_string(4, 8, you_may, _you_may)
-    :draw_string(_period_column, _continue_row, continue, _continue)
-    :draw_string(_period_column, _look_at_map_row, look_at_map, _look_at_map)
-    :draw_string(_period_column, _change_pace_row, change_pace, _change_pace)
-    :draw_string(_period_column, _stop_to_rest_row, stop_to_rest, _stop_to_rest)
-    :draw_string(_period_column, _talk_to_people_row, talk_to_people, _talk_to_people)
+    // Information should be on the top half of the screen
+    lda #>screen_memory(_colon_column - 5, _time_row)
+    sta ZEROPAGE_POINTER_1 + 1
+    lda #<screen_memory(_colon_column - 5, _time_row)
+    sta ZEROPAGE_POINTER_1
+
+    jsr RunGameState.draw_information_background
+
+    :draw_string(4, _you_may_row, you_may, _you_may)
+    :draw_string(_period_column, _you_may_row + 1, continue, _continue)
+    :draw_string(_period_column, _you_may_row + 2, look_at_map, _look_at_map)
+    :draw_string(_period_column, _you_may_row + 3, change_pace, _change_pace)
+    :draw_string(_period_column, _you_may_row + 4, stop_to_rest, _stop_to_rest)
+    :draw_string(_period_column, _you_may_row + 5, talk_to_people, _talk_to_people)
 
     rts
 

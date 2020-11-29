@@ -6,12 +6,6 @@
 .const _colon_column = 19
 .const _press_return_row = 18
 .const _time_row = _press_return_row + 1
-.const _weather_row = _time_row + 1
-.const _mood_row = _weather_row + 1
-.const _next_landmark_row = _mood_row + 1
-.const _miles_travelled_row = _next_landmark_row + 1
-.const _white_rows = 25 - _press_return_row
-.const _white_line_number = 250 - 8 * _white_rows
 
 .enum {
     PlayerMood_Crusty = 1,
@@ -264,24 +258,54 @@ done:
 }
 
 
+.var time = "time:"
 _draw_information_background: {
 .var press_return = "press return to size up the situation"
-.var time = "time:"
+    :draw_string(1, _press_return_row, press_return, _press_return)
+
+    // Information should be on the lower half of the screen
+    lda #>screen_memory(_colon_column - 5, _time_row)
+    sta ZEROPAGE_POINTER_1 + 1
+    lda #<screen_memory(_colon_column - 5, _time_row)
+    sta ZEROPAGE_POINTER_1
+
+    jmp draw_information_background
+_press_return: .text press_return
+}
+
+
+// Draws the information backgrund starting at the position
+// stored in ZEROPAGE_POINTER_1
+draw_information_background: {
 .var weather = "weather:"
 .var mood = "mood:"
 .var next_landmark = "next landmark:"
 .var miles_travelled = "miles travelled:"
-    // Information should be on the lower half of the screen
-    :draw_string(1, _press_return_row, press_return, _press_return)
-    :draw_string(_colon_column - time.size(), _time_row, time, _time)
-    :draw_string(_colon_column - weather.size(), _weather_row, weather, _weather)
-    :draw_string(_colon_column - mood.size(), _mood_row, mood, _mood)
-    :draw_string(_colon_column - next_landmark.size(), _next_landmark_row, next_landmark, _next_landmark)
-    :draw_string(_colon_column - miles_travelled.size(), _miles_travelled_row, miles_travelled, _miles_travelled)
+
+    :draw_string_zeropage_pointer_1(time, _time)
+
+    ldx #40 + time.size() - weather.size()
+    stx PARAM_1
+    jsr _add_param_1_to_zeropage_pointer
+    :draw_string_zeropage_pointer_1(weather, _weather)
+
+    ldx #40 + weather.size() - mood.size()
+    stx PARAM_1
+    jsr _add_param_1_to_zeropage_pointer
+    :draw_string_zeropage_pointer_1(mood, _mood)
+
+    ldx #40 + mood.size() - next_landmark.size()
+    stx PARAM_1
+    jsr _add_param_1_to_zeropage_pointer
+    :draw_string_zeropage_pointer_1(next_landmark, _next_landmark)
+
+    ldx #40 + next_landmark.size() - miles_travelled.size()
+    stx PARAM_1
+    jsr _add_param_1_to_zeropage_pointer
+    :draw_string_zeropage_pointer_1(miles_travelled, _miles_travelled)
 
     rts
 
-_press_return: .text press_return
 _time: .text time
 _weather: .text weather
 _mood: .text mood
@@ -559,6 +583,18 @@ _exhausted: .text exhausted
 _crusty: .text crusty
 
 _miles: .text miles
+}
+
+
+_add_param_1_to_zeropage_pointer: {
+    lda ZEROPAGE_POINTER_1
+    clc
+    adc PARAM_1
+    sta ZEROPAGE_POINTER_1
+    bcc !no_carry+
+    inc ZEROPAGE_POINTER_1 + 1
+!no_carry:
+    rts
 }
 
 
