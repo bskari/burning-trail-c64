@@ -211,6 +211,7 @@ _animate: {
 clear_screen_and_redraw:
     jsr clear_screen
     jsr _draw_information_background
+    jsr _draw_highway
     jsr _draw_information
     lda #0
     sta _waiting_for_input
@@ -766,6 +767,8 @@ not_reached_landmark:
 
 // Draws a popup with information about distance to the next landmark
 _popup_next_landmark: {
+.var press_space = "press space bar to continue"
+    :draw_centered_string(24, press_space, _press_space)
     lda _next_landmark
     :my_assert(NextLandmark_Wadsworth == 0, "unexpected enum value")
     bne !next+
@@ -811,13 +814,13 @@ _message_3_1: .text message_3_1
 _message_3_2: .text message_3_2
 _message_4_1: .text message_4_1
 _message_4_2: .text message_4_2
+_press_space: .text press_space
 }
 
 
 // Split the screen into different background color horizontal strips
 irq_handler: {
 .var _colors = List().add(BLACK, GRAY, BLACK, BLACK, WHITE)
-//.var _lines = List().add(150, 192, 201, 0)
 .var _lines = List().add(105, 129, 192, 201, 0)
 
     pha
