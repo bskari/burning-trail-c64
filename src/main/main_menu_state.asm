@@ -6,16 +6,18 @@
 .namespace MainMenuState {
 // **** Constants ****
 .enum {
-    State_YouMay = 1,
-    State_Travel = 2,
-    State_LearnAboutBurningMan = 3,
-    State_LearnAboutGate = 4,
-    State_Shop = 5,
-    State_SelectDepartureTime = 6,
+    State_Fade = 1,
+    State_YouMay = 2,
+    State_Travel = 3,
+    State_LearnAboutBurningMan = 4,
+    State_LearnAboutGate = 5,
+    State_Shop = 6,
+    State_SelectDepartureTime = 7,
     State_ExitMenu = 255
 }
 
 .var initializeSubroutineTable = List().add(
+    _initialize_fade,
     _initialize_you_may,
     _initialize_travel,
     _initialize_learn_about_burning_man,
@@ -32,6 +34,7 @@ _temp_initialize_subroutine_table:
 .const _initialize_subroutine_table = _temp_initialize_subroutine_table - 2
 
 .var tickSubroutineTable = List().add(
+    _tick_fade,
     _tick_you_may,
     _tick_travel,
     _tick_space_key_return,
@@ -58,23 +61,19 @@ _you_may:
 _question: .text question
 
 // **** Variables ****
-_state: .byte State_YouMay
+_state: .byte State_Fade
 _space_key_return_state: .byte 0
 
 
 // **** Subroutines ****
 
 initialize: {
-    //lda #State_YouMay
+    jmp _initialize_you_may
+    //// TODO: For testing
+    //lda #State_SelectDepartureTime
     //sta _state
-    //jsr _initialize_you_may
-    // TODO: For testing
-    lda #State_SelectDepartureTime
-    sta _state
-    jsr _initialize_select_departure_time
-    rts
+    //jmp _initialize_select_departure_time
 }
-
 
 tick: {
     jsr _call_tick_subroutine
@@ -83,6 +82,7 @@ tick: {
     cmp #State_ExitMenu
     bne still_main_menu
     // Transition to state RunGame
+    .break
     lda #GameState_RunGame
     rts
 
@@ -95,7 +95,6 @@ no_state_change:
     rts
 }
 
-
 _call_tick_subroutine: {
     lda _state
     asl
@@ -107,6 +106,60 @@ _call_tick_subroutine: {
     rts
 }
 
+_tick_fade: {
+    .break
+    inc $0
+    lda $0
+    cmp #127
+    bcs next_state
+
+    sta RASTER_LINE_INTERRUPT
+    lda #0
+    rts
+
+next_state:
+    // Disable raster interrupts
+    sei
+    lda #%01111111
+    sta INTERRUPT_CONTROL_1  // Disable raster interrupts
+    cli
+
+    // Move to next state
+    lda #State_YouMay
+    rts
+}
+
+_fade_interrupt: {
+    asl INTERRUPT_STATUS_REGISTER  // Acknowledge interrupt
+
+    lda $1
+    bne lower
+
+    // -- Upper half --
+    inc $1
+    lda #BLACK
+    sta BORDER_COLOR
+
+    // Set line for bottom half
+    lda #255
+    clc
+    sbc $0
+    sta RASTER_LINE_INTERRUPT
+
+    rti
+
+lower:
+    // -- Lower half --
+    dec $1
+    lda #PURPLE
+    sta BORDER_COLOR
+
+    // Set line for top half
+    lda $0
+    sta RASTER_LINE_INTERRUPT
+
+    rti
+}
 
 _tick_you_may: {
 .var state_list = List().add(State_Travel, State_LearnAboutBurningMan, State_LearnAboutGate)
@@ -139,7 +192,6 @@ _states:
     .byte state_list.get(i)
 }
 }
-
 
 _tick_travel: {
 .var playerList = List().add(Player_Billionaire, Player_SparklePony, Player_VeteranBurner, Player_Virgin)
@@ -175,7 +227,6 @@ _player_types:
 }
 }
 
-
 _tick_select_departure_time: {
 .var departure_hour_list = List().add(18, 21, 24, 33, 45)
     ldy #0
@@ -209,7 +260,6 @@ _departure_hours:
 }
 }
 
-
 _tick_space_key_return: {
     // When space key is pressed, go back to the first state
     // Check for space key, row = 7, column = 4
@@ -227,7 +277,6 @@ _tick_space_key_return: {
     rts
 }
 
-
 _call_initialize_subroutine: {
     lda _state
     asl
@@ -239,6 +288,35 @@ _call_initialize_subroutine: {
     rts
 }
 
+_initialize_fade: {
+    lda #40
+    sta $0  // Which line we've faded out
+    lda #0
+    sta $1  // Whether we're on the upper or lower interrupt
+
+    // Set up raster interrupt
+    sei
+    lda #%01111111
+    sta INTERRUPT_CONTROL_1  // Disable raster interrupts
+    and SCREEN_CONTROL_1
+    sta SCREEN_CONTROL_1  // Clear MSB
+    lda INTERRUPT_CONTROL_1  // Acknowledge pending interrupts
+    lda INTERRUPT_CONTROL_2  // Acknowledge pending interrupts
+
+    lda #1
+    sta RASTER_LINE_INTERRUPT
+    lda #<_fade_interrupt
+    sta $FFFE
+    lda #>_fade_interrupt
+    sta $FFFF
+
+    lda INTERRUPT_CONTROL_3
+    ora #%00000001
+    sta INTERRUPT_CONTROL_3  // Enable raster interrupts
+    cli
+
+    rts
+}
 
 _initialize_you_may: {
     .var line_1 = "1. travel to the burn"
@@ -250,13 +328,12 @@ _initialize_you_may: {
     :draw_string(7, 12, line_1, _line_1)
     :draw_string(7, 13, line_2, _line_2)
     :draw_string(7, 14, line_3, _line_3)
-     rts
+    rts
 
     _line_1: .text line_1
     _line_2: .text line_2
     _line_3: .text line_3
 }
-
 
 _initialize_travel: {
     .var intro_1 = "many kinds of people make the"
@@ -284,7 +361,6 @@ _initialize_travel: {
     _option_3: .text option_3
     _option_4: .text option_4
 }
-
 
 _initialize_learn_about_gate: {
     lda #State_YouMay
@@ -324,7 +400,7 @@ _initialize_learn_about_gate: {
     :draw_centered_string(18, line_15, _line_15)
 
     :draw_centered_string(22, space_to_continue, _space_to_continue)
-     rts
+    rts
 
     _line_1: .text line_1
     _line_2: .text line_2
@@ -342,7 +418,6 @@ _initialize_learn_about_gate: {
     _line_14: .text line_14
     _line_15: .text line_15
 }
-
 
 _initialize_shop: {
     lda #State_SelectDepartureTime
@@ -411,7 +486,6 @@ end:
     _veteran_2: .text veteran_2
 }
 
-
 _initialize_learn_about_burning_man: {
     lda #State_YouMay
     sta _space_key_return_state
@@ -445,7 +519,7 @@ _initialize_learn_about_burning_man: {
     :draw_centered_string(15, line_12, _line_12)
     :draw_centered_string(16, line_13, _line_13)
     :draw_centered_string(18, space_to_continue, _space_to_continue)
-     rts
+    rts
 
     _line_1: .text line_1
     _line_2: .text line_2
@@ -461,7 +535,6 @@ _initialize_learn_about_burning_man: {
     _line_12: .text line_12
     _line_13: .text line_13
 }
-
 
 _initialize_select_departure_time: {
     .var description_1 = "from reno, it's 29 miles east to"
@@ -504,6 +577,5 @@ _initialize_select_departure_time: {
     _option_4: .text option_4
     _option_5: .text option_5
 }
-
 
 }  // End namespace
