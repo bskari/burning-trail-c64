@@ -53,8 +53,7 @@ wait_step_2:
     rts
 }
 
-
-clear_screen:
+clear_screen: {
     lda #' '
 set_screen_to_a:
     ldx #251
@@ -66,7 +65,7 @@ set_screen_to_a:
     sta DEFAULT_SCREEN_MEMORY + 750, x
     bne !_more_clear_screen-
     rts
-
+}
 
 // Reads a single key from the keyboard. Handles debouncing, so it immediately
 // returns the keyboard state when pressed, but subsequent checks won't until
@@ -159,6 +158,23 @@ previous: .byte 0
     .return table.get(character)
 }
 
+jump_engine: {
+    // Taken from Super Mario Bros. To use, lda an index, then jsr to this,
+    // and after that jsr use .word to list labels to jump to
+    asl          // shift bit from contents of A
+    tay
+    pla          // pull saved return address from stack
+    sta $04      // save to indirect
+    pla
+    sta $05
+    iny
+    lda ($04),y  // load pointer from indirect
+    sta $06      // note that if an RTS is performed in next routine
+    iny          // it will return to the execution before the sub
+    lda ($04),y  // that called this routine
+    sta $07
+    jmp ($06)    // jump to the address we loaded
+}
 
 /*
 ripple_colors: {

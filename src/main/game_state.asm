@@ -3,33 +3,6 @@
 
 .namespace GameState {
 
-// **** Constants ****
-.var initializeSubroutineTable = List().add(
-    MainMenuState.initialize,
-    RunGameState.initialize,
-    SizeUpState.initialize
-).lock()
-_temp_initialize_subroutine_table:
-.for (var i = 0; i < initializeSubroutineTable.size(); i++) {
-    // Use address - 1 for the rts trick
-    .word initializeSubroutineTable.get(i) - 1
-}
-// The first entry is excluded to save space, since states start at 1
-.const _initialize_subroutine_table = _temp_initialize_subroutine_table - 2
-
-.var tickSubroutineTable = List().add(
-    MainMenuState.tick,
-    RunGameState.tick,
-    SizeUpState.tick
-).lock()
-_temp_tick_subroutine_table:
-.for (var i = 0; i < tickSubroutineTable.size(); i++) {
-    // Use address - 1 for the rts trick
-    .word tickSubroutineTable.get(i) - 1
-}
-// The first entry is excluded to save space, since states start at 1
-.const _tick_subroutine_table = _temp_tick_subroutine_table - 2
-
 // **** Variables ****
 player_type: .byte Player_Billionaire
 _state: .byte GameState_MainMenu
@@ -42,19 +15,15 @@ time_minutes: .byte 0
 // Initializes a new state, including loading new graphics, etc.
 _initialize_state: {
     lda _state
-    asl
-    tax
-    lda _initialize_subroutine_table + 1, x
-    pha
-    lda _initialize_subroutine_table, x
-    pha
-    rts
+    jsr jump_engine
+    .word MainMenuState.initialize
+    .word RunGameState.initialize
+    .word SizeUpState.initialize
 }
 
 
 // Runs a frame of the current state. Initializes a state if necessary.
 tick: {
-
     jsr _call_tick_subroutine
 
     // A return value of 0 indicates that no state change is necessary
@@ -71,13 +40,10 @@ no_state_change:
 
 _call_tick_subroutine: {
     lda _state
-    asl
-    tax
-    lda _tick_subroutine_table + 1, x
-    pha
-    lda _tick_subroutine_table, x
-    pha
-    rts
+    jsr jump_engine
+    .word MainMenuState.tick
+    .word RunGameState.tick
+    .word SizeUpState.tick
 }
 
 }

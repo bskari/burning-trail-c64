@@ -6,69 +6,35 @@
 .namespace MainMenuState {
 // **** Constants ****
 .enum {
-    State_Fade = 1,
-    State_YouMay = 2,
-    State_Travel = 3,
-    State_LearnAboutBurningMan = 4,
-    State_LearnAboutGate = 5,
-    State_Shop = 6,
-    State_SelectDepartureTime = 7,
+    State_Fade = 0,
+    State_YouMay = 1,
+    State_Travel = 2,
+    State_LearnAboutBurningMan = 3,
+    State_LearnAboutGate = 4,
+    State_Shop = 5,
+    State_SelectDepartureTime = 6,
     State_ExitMenu = 255
 }
 
-.var initializeSubroutineTable = List().add(
-    _initialize_fade,
-    _initialize_you_may,
-    _initialize_travel,
-    _initialize_learn_about_burning_man,
-    _initialize_learn_about_gate,
-    _initialize_shop,
-    _initialize_select_departure_time
-).lock()
-_temp_initialize_subroutine_table:
-.for (var i = 0; i < initializeSubroutineTable.size(); i++) {
-    // Use address - 1 for the rts trick
-    .word initializeSubroutineTable.get(i) - 1
-}
-// The first entry is excluded to save space, since states start at 1
-.const _initialize_subroutine_table = _temp_initialize_subroutine_table - 2
-
-.var tickSubroutineTable = List().add(
-    _tick_fade,
-    _tick_you_may,
-    _tick_travel,
-    _tick_space_key_return,
-    _tick_space_key_return,
-    _tick_space_key_return,
-    _tick_select_departure_time
-).lock()
-_temp_tick_subroutine_table:
-.for (var i = 0; i < tickSubroutineTable.size(); i++) {
-    .word tickSubroutineTable.get(i) - 1
-}
-// The first entry is excluded to save space, since states start at 1
-.const _tick_subroutine_table = _temp_tick_subroutine_table - 2
-
 .var space_to_continue = "press space to continue"
-_space_to_continue:
-.text space_to_continue
+_space_to_continue: .text space_to_continue
 
 .var you_may = "you may:"
-_you_may:
-.text you_may
+_you_may: .text you_may
 
 .var question = "what is your choice?"
 _question: .text question
 
 // **** Variables ****
-_state: .byte State_Fade
+_state: .byte State_YouMay
 _space_key_return_state: .byte 0
 
 
 // **** Subroutines ****
 
 initialize: {
-    jmp _initialize_you_may
+    jmp _call_initialize_subroutine
+    //jmp _initialize_you_may
     //// TODO: For testing
     //lda #State_SelectDepartureTime
     //sta _state
@@ -77,12 +43,11 @@ initialize: {
 
 tick: {
     jsr _call_tick_subroutine
-    // If a != 0, then that is the next requested state
-    beq no_state_change
+    // If carry is set, then A is the next requested state
+    bcc no_state_change
     cmp #State_ExitMenu
     bne still_main_menu
     // Transition to state RunGame
-    .break
     lda #GameState_RunGame
     rts
 
@@ -97,24 +62,25 @@ no_state_change:
 
 _call_tick_subroutine: {
     lda _state
-    asl
-    tax
-    lda _tick_subroutine_table + 1, x
-    pha
-    lda _tick_subroutine_table, x
-    pha
-    rts
+    jsr jump_engine
+    .word _tick_fade
+    .word _tick_you_may
+    .word _tick_travel
+    .word _tick_space_key_return  // Learn about Burning Man
+    .word _tick_space_key_return  // Learn about gate
+    .word _tick_space_key_return  // Shop
+    .word _tick_select_departure_time
 }
 
 _tick_fade: {
-    .break
+    // This isn't working at the moment (2021-11-16)
     inc $0
     lda $0
     cmp #127
     bcs next_state
 
     sta RASTER_LINE_INTERRUPT
-    lda #0
+    clc
     rts
 
 next_state:
@@ -126,6 +92,7 @@ next_state:
 
     // Move to next state
     lda #State_YouMay
+    sec
     rts
 }
 
@@ -178,10 +145,11 @@ check_next:
 
     // Something was pressed!
     lda _states, y
+    sec
     rts
 
 nothing_pressed:
-    lda #0
+    clc
 
 // This lookup table should never use index 0, so put the first byte as an
 // opcode for rts. Aw yeah, saved a byte!
@@ -212,10 +180,11 @@ check_next:
     lda _player_types, y
     sta GameState.player_type
     lda #State_Shop
+    sec
     rts
 
 nothing_pressed:
-    lda #0
+    clc
 
 // This lookup table should never use index 0, so put the first byte as an
 // opcode for rts. Aw yeah, saved a byte!
@@ -245,10 +214,11 @@ check_next:
     lda _departure_hours, y
     sta GameState.time_hours
     lda #State_ExitMenu
+    sec
     rts
 
 nothing_pressed:
-    lda #0
+    clc
 
 // This lookup table should never use index 0, so put the first byte as an
 // opcode for rts. Aw yeah, saved a byte!
@@ -270,22 +240,24 @@ _tick_space_key_return: {
     jsr read_keyboard_press
     bne !not_pressed+
     lda _space_key_return_state
+    sec
     rts
 
 !not_pressed:
-    lda #0
+    clc
     rts
 }
 
 _call_initialize_subroutine: {
     lda _state
-    asl
-    tax
-    lda _initialize_subroutine_table + 1, x
-    pha
-    lda _initialize_subroutine_table, x
-    pha
-    rts
+    jsr jump_engine
+    .word _initialize_fade
+    .word _initialize_you_may
+    .word _initialize_travel
+    .word _initialize_learn_about_burning_man
+    .word _initialize_learn_about_gate
+    .word _initialize_shop
+    .word _initialize_select_departure_time
 }
 
 _initialize_fade: {
