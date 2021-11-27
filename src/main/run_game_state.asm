@@ -181,10 +181,11 @@ tick: {
     lda _size_up_the_situation
     beq return
     lda #GameState_SizeUp
+    sec
     rts
 
 return:
-    lda #0
+    clc
     rts
 }
 

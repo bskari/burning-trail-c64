@@ -26,8 +26,8 @@ _initialize_state: {
 tick: {
     jsr _call_tick_subroutine
 
-    // A return value of 0 indicates that no state change is necessary
-    beq no_state_change
+    // If carry is set, then A is the next requested state
+    bcc no_state_change
     sta _state
     // We could set a flag so that we only do this at the beginning of a tick
     // and prevent screen tearing, but it's only going to be there for one

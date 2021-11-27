@@ -103,7 +103,7 @@ _talk_to_people: .text talk_to_people
 
 tick: {
     // TODO
-    lda #0
+    clc
     rts
 }
 

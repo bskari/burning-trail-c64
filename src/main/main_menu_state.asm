@@ -26,7 +26,9 @@ _you_may: .text you_may
 _question: .text question
 
 // **** Variables ****
-_state: .byte State_YouMay
+// TODO: For testing, you can set this to State_SelectDepartureTime, but
+// normally this should be State_Fade
+_state: .byte State_SelectDepartureTime
 _space_key_return_state: .byte 0
 
 
@@ -34,11 +36,6 @@ _space_key_return_state: .byte 0
 
 initialize: {
     jmp _call_initialize_subroutine
-    //jmp _initialize_you_may
-    //// TODO: For testing
-    //lda #State_SelectDepartureTime
-    //sta _state
-    //jmp _initialize_select_departure_time
 }
 
 tick: {
@@ -49,6 +46,7 @@ tick: {
     bne still_main_menu
     // Transition to state RunGame
     lda #GameState_RunGame
+    sec
     rts
 
 still_main_menu:
@@ -56,7 +54,7 @@ still_main_menu:
     jsr _call_initialize_subroutine
 
 no_state_change:
-    lda #0
+    clc
     rts
 }
 
