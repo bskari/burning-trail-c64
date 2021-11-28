@@ -27,6 +27,12 @@ _landmark_distance:
     .byte 29 + 78 + 8
     .byte 29 + 78 + 8 + 5
 
+    // We use these to decide when to start showing the next landmark
+_landmark_sprite_offset:
+    .byte 0
+_landmark_sprite_offset_start:
+    .byte 
+
 // We store gate wait times in 2 hour chunks
 _wait_time_hours_by_2_hour_intervals:
     .byte 2  // -24
@@ -108,7 +114,11 @@ initialize: {
     ora #%00000011
     sta SPRITE_ENABLE
 
-    // Load the car sprite offset into a
+    // Road sign
+    lda #80
+    sta sprite_y(2)
+
+    // Load the car sprite offset into A
     ldy GameState.player_type
     cpy Player_Billionaire
     bne !next+
@@ -148,6 +158,8 @@ set_sprite_pointers:
     sta SPRITE_X_EXTENDED
 }
 
+    jsr _update_next_landmark_sprite
+
     jsr _draw_information
 
 done:
@@ -181,14 +193,13 @@ tick: {
     lda _size_up_the_situation
     beq return
     lda #GameState_SizeUp
-    sec
+    sec // Carry indicates a state change to whatever's in A
     rts
 
 return:
     clc
     rts
 }
-
 
 _animate: {
     lda _waiting_for_input
@@ -208,6 +219,12 @@ clear_screen_and_redraw:
     jsr _draw_information_background
     jsr _draw_highway
     jsr _draw_information
+
+    // Disable the landmark
+    lda SPRITE_ENABLE
+    and #%1111_1011
+    sta SPRITE_ENABLE
+
     lda #0
     sta _waiting_for_input
 !continue:
@@ -241,23 +258,75 @@ skip_update:
     sty _timer
     jmp done
 
-    // Animate the car up and down
+    // Animate the car up and down, and any upcoming signs
 animate:
 
-.const sprite_y_base = 80
-    tya  // Load timer into a
+.const car_y_base = 90
+    tya  // Load timer into A
     and #%00001000
     lsr
     clc
-    adc #sprite_y_base
+    adc #car_y_base
     sta sprite_y(0)
     sta sprite_y(1)
+
+    jsr _update_next_landmark_sprite
 
 done:
     inc _timer
     rts
 }
 
+// Sets the data needed for the next landmark sprite, including X and Y
+// offsets, enabling or disabling the landmark if it's offscreen, and setting
+// the sprite pointer. This does more work than necessary when animating per
+// frame, but I'm not time constrained, so who cares.
+_update_next_landmark_sprite: {
+    // We only update the distance after each animation (~2 seconds), but the
+    // sign should be moving faster. So only start drawing the sign when we're
+    // close.
+    lda _miles_travelled
+    sta $10  // Arbitrarily chosen
+    ldx _next_landmark
+    lda _landmark_distance, x
+    sec
+    sbc $10
+
+    // Don't start drawing the sign unless we're within 20 miles
+    cmp #50
+    bcc continue
+
+disable:
+    lda #50
+    sta _landmark_sprite_offset
+    lda #%1111_1011
+    and SPRITE_ENABLE
+    sta SPRITE_ENABLE
+    rts
+
+continue:
+    // Set the sprite
+    lda #7 + (SPRITE_DATA / 64)
+    sta SPRITE_POINTER_BASE + 2
+    lda #GREEN
+    sta sprite_color(2)
+
+    lda _landmark_sprite_offset
+    sta sprite_x(2)
+    lda SPRITE_ENABLE
+    ora #%00000100
+    sta SPRITE_ENABLE
+
+    // Just move it part time
+    lda #0000_0001
+    bit _timer
+    beq return
+
+    inc _landmark_sprite_offset
+
+return:
+    rts
+}
 
 .var time = "time:"
 _draw_information_background: {
