@@ -97,7 +97,7 @@
 // bits 4-7 * 1024 = start address of screen character RAM
 // When in bitmap mode, bit 3 indicates if bitmap begins at $0 or $2000, and
 // bits 4-7  * 1-24 = start address of color information
-.const MEMORY_SETUP = $D018  // 53272
+.const GRAPHICS_SETUP = $D018  // 53272
 .const SPRITE_PRIORITY = $D01B  // 53275
 .const SPRITE_MULTICOLOR = $D01C  // 53276
 .const SPRITE_DOUBLE_WIDTH = $D01D  // 53277

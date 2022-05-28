@@ -19,8 +19,8 @@
     // Set charset
     // Character RAM VIC bank address offset = %0011 * 1024 = 3072 = 0xC00
     // Character set RAM VIC bank address offset = %110 * 2048 = 12288 = 0x3000
-    lda #%00111100
-    sta MEMORY_SETUP
+    lda #%0011_1100
+    sta GRAPHICS_SETUP
 
     // Set VIC bank to $C000-$FFFF
     lda VIC_BANK_SETUP
