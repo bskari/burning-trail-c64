@@ -12,6 +12,8 @@ main: {
 
     :initialize_screen()
     :initialize_sprites()
+    // I'm not going to use custom tiles, so I shouldn't need that
+    //:copy_character_rom()
 
     // Turn off CIA timer interrupts
     lda #%0111_1111
@@ -110,6 +112,28 @@ repeat:
     lda #BLUE
     sta SPRITE_0_COLOR + 4
     sta SPRITE_0_COLOR + 5
+}
+
+.macro copy_character_rom() {
+    lda #%110011  // Enable character ROM for CPU
+    sta $01
+    lda #$D0
+    sta $FC
+    ldy #00
+    sty $FB
+
+    // Copy 2 KiB
+    ldx #8
+loop:
+    lda ($FB), y
+    sta ($FB), y
+    iny
+    bne loop
+    inc $FC
+    dex
+    bne loop
+    lda #%110111  // Switch in I/O mapped registers again
+    sta $01
 }
 
 dummy_irq_handler: {
