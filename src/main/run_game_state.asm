@@ -926,8 +926,8 @@ _press_space: .text press_space
 
 // Split the screen into different background color horizontal strips
 irq_handler: {
-.var _colors = List().add(BLACK, BLACK, WHITE)
-.var _lines = List().add(192, 201, 0)
+.var _colors = List().add(BLACK, GRAY, BLACK, BLACK, WHITE)
+.var _lines = List().add(105, 129, 192, 201, 0)
 
     pha
     txa
@@ -949,22 +949,11 @@ burn_time:
     lda lines, x
     sta RASTER_LINE_INTERRUPT
 
-    cpx 1
-    bne not_equal
-    // For the top half of the screen, we use non-text characters
-    lda #%0001_1110  // This is arbitrary for now
-    jmp continue
-not_equal:
-    lda #%0001_0110  // Use ROM character text
-continue:
-    sta GRAPHICS_SETUP
-
     dec index
-    lda index
-    bpl not_zero
+    bpl continue
     lda #_colors.size() - 1
     sta index
-not_zero:
+continue:
 
     // Acknowledge the interrupt
     inc $D019
