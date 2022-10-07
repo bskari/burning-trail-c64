@@ -6,13 +6,12 @@
 .namespace MainMenuState {
 // **** Constants ****
 .enum {
-    State_Fade = 0,
-    State_YouMay = 1,
-    State_Travel = 2,
-    State_LearnAboutBurningMan = 3,
-    State_LearnAboutGate = 4,
-    State_Shop = 5,
-    State_SelectDepartureTime = 6,
+    State_YouMay = 0,
+    State_Travel = 1,
+    State_LearnAboutBurningMan = 2,
+    State_LearnAboutGate = 3,
+    State_Shop = 4,
+    State_SelectDepartureTime = 5,
     State_ExitMenu = 255
 }
 
@@ -27,8 +26,8 @@ _question: .text question
 
 // **** Variables ****
 // TODO: For testing, you can set this to State_SelectDepartureTime, but
-// normally this should be State_Fade
-_state: .byte State_Fade
+// normally this should be State_YouMay
+_state: .byte State_YouMay
 _space_key_return_state: .byte 0
 
 
@@ -62,53 +61,12 @@ no_state_change:
 _call_tick_subroutine: {
     lda _state
     jsr jump_engine
-    .word _tick_fade
     .word _tick_you_may
     .word _tick_travel
     .word _tick_space_key_return  // Learn about Burning Man
     .word _tick_space_key_return  // Learn about gate
     .word _tick_space_key_return  // Shop
     .word _tick_select_departure_time
-}
-
-_tick_fade: {
-    // Move the fade down
-    inc $20
-    inc $20
-    inc $20
-    inc $20
-    inc $20
-    lda $20
-    cmp #250
-    bcs next_state
-
-    lda #BLACK
-    sta BORDER_COLOR
-    sta BACKGROUND_COLOR
-
-    // Wait until we hit that line
-    lda $20
-repeat:
-    cmp RASTER_LINE
-    bne repeat
-
-    lda #LIGHT_BLUE
-    sta BORDER_COLOR
-    lda #BLUE
-    sta BACKGROUND_COLOR
-
-    clc
-    rts
-
-next_state:
-    lda #BLACK
-    sta BORDER_COLOR
-    sta BACKGROUND_COLOR
-
-    // Move to next state
-    lda #State_YouMay
-    //sec  // This should be done above
-    rts
 }
 
 _tick_you_may: {
@@ -234,20 +192,12 @@ _tick_space_key_return: {
 _call_initialize_subroutine: {
     lda _state
     jsr jump_engine
-    .word _initialize_fade
     .word _initialize_you_may
     .word _initialize_travel
     .word _initialize_learn_about_burning_man
     .word _initialize_learn_about_gate
     .word _initialize_shop
     .word _initialize_select_departure_time
-}
-
-_initialize_fade: {
-    lda #40
-    sta $20  // Which line we've faded out
-
-    rts
 }
 
 _initialize_you_may: {

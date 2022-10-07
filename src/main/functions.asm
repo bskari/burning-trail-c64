@@ -43,13 +43,6 @@ wait_frame: {
     lda RASTER_LINE
     cmp #248
     beq wait_frame
-
-    // Wait for the raster line to reach line 248
-    // (should be the start of the line this way)
-wait_step_2:
-    lda RASTER_LINE
-    cmp #248
-    bne wait_step_2
     rts
 }
 

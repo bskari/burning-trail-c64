@@ -53,6 +53,8 @@ main: {
 
     cli
 
+    :fade()
+
     // One time, we need to initialize the state
     jsr GameState._initialize_state
 
@@ -71,9 +73,6 @@ loop:
 
 
 .macro initialize_screen() {
-    ldx #DARK_GRAY
-    stx BORDER_COLOR
-
     lda #WHITE
     ldx #250
 repeat:
@@ -85,6 +84,50 @@ repeat:
     bne repeat
 
     jsr clear_screen
+}
+
+.macro fade() {
+    .const fadeCounter = $25
+    lda #50
+    sta fadeCounter  // Which line we've faded out
+
+repeat:
+    jsr wait_frame
+
+    lda #BLACK
+    sta BORDER_COLOR
+    sta BACKGROUND_COLOR
+
+    // Move the fade down
+    inc fadeCounter
+    lda fadeCounter
+    cmp #128
+    beq done
+
+    // Wait until we hit that line
+!:
+    cmp RASTER_LINE
+    bne !-
+
+    lda #LIGHT_BLUE
+    sta BORDER_COLOR
+    lda #BLUE
+    sta BACKGROUND_COLOR
+
+    // Wait until we hit the other side
+    lda #254
+    // I don't think sec is necessary because it won't be noticeable anyway
+    sbc fadeCounter
+!:
+    cmp RASTER_LINE
+    bne !-
+
+    lda #BLACK
+    sta BORDER_COLOR
+    sta BACKGROUND_COLOR
+
+    jmp repeat
+done:
 }
 
 .macro initialize_sprites() {
