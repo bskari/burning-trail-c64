@@ -28,7 +28,7 @@ _question: .text question
 // **** Variables ****
 // TODO: For testing, you can set this to State_SelectDepartureTime, but
 // normally this should be State_Fade
-_state: .byte State_SelectDepartureTime
+_state: .byte State_Fade
 _space_key_return_state: .byte 0
 
 
@@ -39,6 +39,7 @@ initialize: {
 }
 
 tick: {
+    jsr wait_frame
     jsr _call_tick_subroutine
     // If carry is set, then A is the next requested state
     bcc no_state_change
@@ -71,59 +72,43 @@ _call_tick_subroutine: {
 }
 
 _tick_fade: {
-    // This isn't working at the moment (2021-11-16)
-    inc $0
-    lda $0
-    cmp #127
+    // Move the fade down
+    inc $20
+    inc $20
+    inc $20
+    inc $20
+    inc $20
+    lda $20
+    cmp #250
     bcs next_state
 
-    sta RASTER_LINE_INTERRUPT
+    lda #BLACK
+    sta BORDER_COLOR
+    sta BACKGROUND_COLOR
+
+    // Wait until we hit that line
+    lda $20
+repeat:
+    cmp RASTER_LINE
+    bne repeat
+
+    lda #LIGHT_BLUE
+    sta BORDER_COLOR
+    lda #BLUE
+    sta BACKGROUND_COLOR
+
     clc
     rts
 
 next_state:
-    // Disable raster interrupts
-    sei
-    lda #%01111111
-    sta INTERRUPT_CONTROL_1  // Disable raster interrupts
-    cli
+    lda #BLACK
+    sta BORDER_COLOR
+    sta BACKGROUND_COLOR
 
     // Move to next state
     lda #State_YouMay
-    sec
+    //sec  // This should be done above
     rts
-}
-
-_fade_interrupt: {
-    asl INTERRUPT_STATUS_REGISTER  // Acknowledge interrupt
-
-    lda $1
-    bne lower
-
-    // -- Upper half --
-    inc $1
-    lda #BLACK
-    sta BORDER_COLOR
-
-    // Set line for bottom half
-    lda #255
-    clc
-    sbc $0
-    sta RASTER_LINE_INTERRUPT
-
-    rti
-
-lower:
-    // -- Lower half --
-    dec $1
-    lda #PURPLE
-    sta BORDER_COLOR
-
-    // Set line for top half
-    lda $0
-    sta RASTER_LINE_INTERRUPT
-
-    rti
 }
 
 _tick_you_may: {
@@ -260,30 +245,7 @@ _call_initialize_subroutine: {
 
 _initialize_fade: {
     lda #40
-    sta $0  // Which line we've faded out
-    lda #0
-    sta $1  // Whether we're on the upper or lower interrupt
-
-    // Set up raster interrupt
-    sei
-    lda #%01111111
-    sta INTERRUPT_CONTROL_1  // Disable raster interrupts
-    and SCREEN_CONTROL_1
-    sta SCREEN_CONTROL_1  // Clear MSB
-    lda INTERRUPT_CONTROL_1  // Acknowledge pending interrupts
-    lda INTERRUPT_CONTROL_2  // Acknowledge pending interrupts
-
-    lda #1
-    sta RASTER_LINE_INTERRUPT
-    lda #<_fade_interrupt
-    sta $FFFE
-    lda #>_fade_interrupt
-    sta $FFFF
-
-    lda INTERRUPT_CONTROL_3
-    ora #%00000001
-    sta INTERRUPT_CONTROL_3  // Enable raster interrupts
-    cli
+    sta $20  // Which line we've faded out
 
     rts
 }
