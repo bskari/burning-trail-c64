@@ -2,21 +2,31 @@
 
 .namespace AttractState {
 // **** Constants ****
-.const message = "burning man gate road"
-.const offset = 600
-.const ripple = 20
+.const message = "burning man: gate road"
+.const offset = X_CHARS * (Y_CHARS - 2)
+.const ripple = 0
+// Some of these colors look bad for some reason? Maybe my graphics mode is
+// wrong. Orange, brown a little, most of the light colors.
+// From DustLayer demo
+//.var color_list = List().add(
+//    ORANGE, LIGHT_RED, LIGHT_RED, LIGHT_GREY, LIGHT_GREY 
+//    YELLOW, YELLOW, WHITE, WHITE, WHITE 
+//    WHITE, WHITE, WHITE, WHITE, WHITE 
+//    WHITE, WHITE, WHITE, WHITE, WHITE 
+//    WHITE, WHITE, WHITE, YELLOW, YELLOW 
+//    LIGHT_GREY, LIGHT_GREY, LIGHT_RED, LIGHT_RED, ORANGE 
+//    ORANGE, RED, RED, BROWN, BROWN 
+//)
+.const color_list = List().add(
+    RED, RED, /*ORANGE, ORANGE,*/ YELLOW, YELLOW,
+    GREEN, GREEN, BLUE, BLUE, PURPLE, PURPLE
+)
 
 // **** Subroutines ****
 
 initialize: {
-    // Offset for color ripple
-    lda #0
-    sta ripple
-
-    //// Set screen width to 38 columns
-    //lda SCREEN_CONTROL_2 
-    //and #%1111_0111
-    //sta SCREEN_CONTROL_2
+    .break
+    lda #ORANGE
 
     // TODO: load the sprite graphics for the man?
     ldx #message.size() - 1
@@ -26,6 +36,7 @@ repeat:
     dex
     bpl repeat
     inc BORDER_COLOR
+    .break
     rts
 }
 
@@ -44,21 +55,41 @@ tick: {
     // The scroll register is full, we need to move the characters over
     ldx #0
     ldy DEFAULT_SCREEN_MEMORY + offset
-repeat:
+!repeat:
     lda DEFAULT_SCREEN_MEMORY + offset + 1, x
     sta DEFAULT_SCREEN_MEMORY + offset, x
     inx
     cpx #40
-    bcc repeat
+    bcc !repeat-
     sty DEFAULT_SCREEN_MEMORY + offset + 39
-
 no_adjust:
+
+/*
+    // Colors
+    ldx #color_list.size()
+    ldy #40
+!repeat:
+    lda colors, x
+    sta CHAR_0_COLOR + offset, y
+    dex
+    bpl continue
+    ldx #color_list.size()
+continue:
+    dey
+    bpl !repeat-
+*/
+
     jsr wait_frame
     clc
     rts
 }
 
 _message: .text message
-colors: .byte LIGHT_RED, ORANGE, YELLOW, LIGHT_GREEN, LIGHT_BLUE, PURPLE, WHITE
+/*
+colors:
+.for (var i = 0; i < color_list.size(); i++) {
+    .byte color_list.get(i)
+}
+*/
 
 }  // End namespace
