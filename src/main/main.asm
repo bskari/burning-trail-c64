@@ -53,7 +53,8 @@ main: {
 
     cli
 
-    :fade()
+    // TODO: Add this back in
+    //:fade()
 
     // One time, we need to initialize the state
     jsr GameState._initialize_state

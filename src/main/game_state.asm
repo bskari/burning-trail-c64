@@ -1,11 +1,13 @@
 #importonce
+#import "attract_state.asm"
 #import "main_menu_state.asm"
+#import "run_game_state.asm"
 
 .namespace GameState {
 
 // **** Variables ****
 player_type: .byte Player_Billionaire
-_state: .byte GameState_MainMenu
+_state: .byte GameState_Attract
 // Hours since day before gate opening at midnight
 time_hours: .byte 0
 time_minutes: .byte 0
@@ -16,6 +18,7 @@ time_minutes: .byte 0
 _initialize_state: {
     lda _state
     jsr jump_engine
+    .word AttractState.initialize
     .word MainMenuState.initialize
     .word RunGameState.initialize
     .word SizeUpState.initialize
@@ -41,6 +44,7 @@ no_state_change:
 _call_tick_subroutine: {
     lda _state
     jsr jump_engine
+    .word AttractState.tick
     .word MainMenuState.tick
     .word RunGameState.tick
     .word SizeUpState.tick
