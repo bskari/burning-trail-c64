@@ -39,17 +39,36 @@ done:
 }
 */
 
+// Generates a pseudo random number
+_random_seed: .byte 0
+_frame_counter: .byte 0
+random: {
+    lda _random_seed
+    adc RASTER_LINE
+    adc _frame_counter
+    sta _random_seed
+    rts
+}
+
+// Wiats for the frame to finish drawing
 wait_frame: {
-    lda RASTER_LINE
-    cmp #248
-    beq wait_frame
+    lda _random_seed
+repeat:
+    adc _frame_counter
+    ldx RASTER_LINE
+    cpx #248
+    beq repeat
 
     // Wait for the raster line to reach line 248
     // (should be the start of the line this way)
 wait_step_2:
-    lda RASTER_LINE
-    cmp #248
+    adc _frame_counter
+    ldx RASTER_LINE
+    cpx #248
     bne wait_step_2
+
+    sta _random_seed
+    inc _frame_counter
     rts
 }
 
