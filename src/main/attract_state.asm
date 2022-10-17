@@ -80,6 +80,22 @@ continue:
 */
 
     jsr wait_frame
+
+    // Check for spacebar
+    lda #%0111_1111
+    sta PARAM_1
+    lda #%0001_0000
+    sta PARAM_2
+    jsr read_keyboard_press
+
+    bcc nothing_pressed
+    lda #GameState_MainMenu
+    sec
+    rts
+
+nothing_pressed:
+    // This clc is unnecessary since we only jump here from bcc, but for
+    // defensive programming, keep it in
     clc
     rts
 }
