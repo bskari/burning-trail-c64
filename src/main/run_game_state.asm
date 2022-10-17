@@ -174,9 +174,8 @@ tick: {
     lda #%0000_0010
     sta PARAM_2
     jsr read_keyboard_press
-    // If no keys were pressed, it returns $FF
-    cmp #$FF
-    beq !continue+
+    // If no keys were pressed, the carry flag will be clear
+    bcc !continue+
     lda #1
     sta _size_up_the_situation
     inc BORDER_COLOR
@@ -210,9 +209,8 @@ _animate: {
     lda #%0001_0000
     sta PARAM_2
     jsr read_keyboard_press
-    // If no keys were pressed, it returns $FF
-    cmp #$FF
-    bne clear_screen_and_redraw
+    // If no keys were pressed, the carry flag will be clear
+    bcc clear_screen_and_redraw
     rts
 clear_screen_and_redraw:
     jsr clear_screen

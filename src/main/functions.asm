@@ -89,8 +89,8 @@ set_screen_to_a:
 // Reads a single key from the keyboard. Handles debouncing, so it immediately
 // returns the keyboard state when pressed, but subsequent checks won't until
 // it's released and pressed again. Put the bitfield for KEYBOARD_1 in PARAM_1
-// and bitfiled for KEYBOARD_2 in PARAM_2. Returns $FF if no keys were pressed,
-// otherwise returns the bitfield.
+// and bitfiled for KEYBOARD_2 in PARAM_2. Sets carry if something was pressed
+// and returns the bitfield in A.
 read_keyboard_press: {
     // Basic flow here is:
     // if previously pressed:
@@ -126,7 +126,7 @@ read_keyboard_press: {
 
         pressed:
         // return not pressed
-        lda #$ff
+        clc
         rts
 
     // else:
@@ -144,14 +144,13 @@ read_keyboard_press: {
             ldx #1
             stx previous
             // return the key, which is already stored in A
-            // But do tax so that we set the zero flag
-            tax
+            sec
             rts
 
         // else:
         not_pressed:
             // return not pressed
-            lda #$ff
+            clc
             rts
 
 previous: .byte 0

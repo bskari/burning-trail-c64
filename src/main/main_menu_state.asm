@@ -82,7 +82,7 @@ check_next:
     lda LookupTables.number_key_to_column_bitmask, y
     sta PARAM_2
     jsr read_keyboard_press
-    bne check_next
+    bcc check_next
 
     // Something was pressed!
     lda _states, y
@@ -115,7 +115,7 @@ check_next:
     lda LookupTables.number_key_to_column_bitmask, y
     sta PARAM_2
     jsr read_keyboard_press
-    bne check_next
+    bcc check_next
 
     // Something was pressed!
     lda _player_types, y
@@ -149,7 +149,7 @@ check_next:
     lda LookupTables.number_key_to_column_bitmask, y
     sta PARAM_2
     jsr read_keyboard_press
-    bne check_next
+    bcc check_next
 
     // Something was pressed!
     lda _departure_hours, y
@@ -179,7 +179,7 @@ _tick_space_key_return: {
     lda #%0001_0000
     sta PARAM_2
     jsr read_keyboard_press
-    bne !not_pressed+
+    bcc !not_pressed+
     lda _space_key_return_state
     sec
     rts
