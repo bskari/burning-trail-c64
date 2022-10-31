@@ -86,6 +86,18 @@ set_screen_to_a:
     rts
 }
 
+set_screen_color: {
+    ldx #251
+!_more_clear_screen:
+    dex
+    sta CHAR_0_COLOR, x
+    sta CHAR_0_COLOR + 250, x
+    sta CHAR_0_COLOR + 500, x
+    sta CHAR_0_COLOR + 750, x
+    bne !_more_clear_screen-
+    rts
+}
+
 // Reads a single key from the keyboard. Handles debouncing, so it immediately
 // returns the keyboard state when pressed, but subsequent checks won't until
 // it's released and pressed again. Put the bitfield for KEYBOARD_1 in PARAM_1
@@ -96,13 +108,13 @@ read_keyboard_press: {
     // if previously pressed:
     //   if no keys are currently pressed:
     //     set previous to false
-    //   return not pressed ($ff)
+    //   return not pressed (clear carry)
     // else:
     //   if the key is pressed:
     //     set previous to true
-    //     return the key
+    //     return the key (set carry)
     //   else:
-    //     return not pressed ($ff)
+    //     return not pressed (clear carry)
 
     // if previously pressed:
     lda previous

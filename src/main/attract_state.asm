@@ -2,45 +2,83 @@
 
 .namespace AttractState {
 // **** Constants ****
-.const message = "burning man: gate road"
+.const intro = "bs presents..."
+.const title = "burning man: gate road"
+.var colors_list = List().add(BLACK, GREY, WHITE, GREY, BLACK)
+.const middle_offset = X_CHARS * (Y_CHARS / 2) - intro.size()
 .const offset = X_CHARS * (Y_CHARS - 2)
-.const ripple = 0
-// Some of these colors look bad for some reason? Maybe my graphics mode is
-// wrong. Orange, brown a little, most of the light colors.
-// From DustLayer demo
-//.var color_list = List().add(
-//    ORANGE, LIGHT_RED, LIGHT_RED, LIGHT_GREY, LIGHT_GREY 
-//    YELLOW, YELLOW, WHITE, WHITE, WHITE 
-//    WHITE, WHITE, WHITE, WHITE, WHITE 
-//    WHITE, WHITE, WHITE, WHITE, WHITE 
-//    WHITE, WHITE, WHITE, YELLOW, YELLOW 
-//    LIGHT_GREY, LIGHT_GREY, LIGHT_RED, LIGHT_RED, ORANGE 
-//    ORANGE, RED, RED, BROWN, BROWN 
-//)
-.const color_list = List().add(
-    RED, RED, /*ORANGE, ORANGE,*/ YELLOW, YELLOW,
-    GREEN, GREEN, BLUE, BLUE, PURPLE, PURPLE
-)
+.const state = $20
+.const timer = $21
+.const color_index = $22
 
 // **** Subroutines ****
 
 initialize: {
-    .break
-    lda #ORANGE
+    jsr clear_screen
+    lda #0
+    sta state
+    sta color_index
+    lda #50
+    sta timer
 
-    // TODO: load the sprite graphics for the man?
-    ldx #message.size() - 1
+    //// TODO Remove this testing code
+    //lda #1
+    //sta timer
+    //lda #colors_list.size() - 1
+    //sta color_index
+
+    ldx #intro.size() - 1
 repeat:
-    lda _message, x
-    sta DEFAULT_SCREEN_MEMORY + offset, x
+    lda _intro, x
+    sta DEFAULT_SCREEN_MEMORY + middle_offset + intro.size() / 2, x
+    lda #BLACK
+    sta CHAR_0_COLOR + middle_offset + intro.size() / 2, x
     dex
     bpl repeat
-    inc BORDER_COLOR
-    .break
+
+    // TODO: load the sprite graphics for the man?
     rts
 }
 
 tick: {
+    lda state
+    bne scroll
+    dec timer
+    bmi continue
+    rts
+continue:
+    // Reset timer
+    lda #50
+    sta timer
+    // Next color
+    inc color_index
+    ldx color_index
+    cpx #colors_list.size()
+    bcs next_state
+    lda _colors, x
+    ldx #intro.size() - 1
+!repeat:
+    sta CHAR_0_COLOR + middle_offset + intro.size() / 2, x
+    dex
+    bpl !repeat-
+    clc
+    rts
+
+next_state:
+    inc state
+    jsr clear_screen
+    lda #WHITE
+    jsr set_screen_color
+    ldx #title.size() - 1
+!repeat:
+    lda _title, x
+    sta DEFAULT_SCREEN_MEMORY + offset, x
+    dex
+    bpl !repeat-
+    clc
+    rts
+
+scroll:
     // Horizontal scroll
     lda SCREEN_CONTROL_2
     and #%0000_0111
@@ -64,21 +102,6 @@ tick: {
     sty DEFAULT_SCREEN_MEMORY + offset + 39
 no_adjust:
 
-/*
-    // Colors
-    ldx #color_list.size()
-    ldy #40
-!repeat:
-    lda colors, x
-    sta CHAR_0_COLOR + offset, y
-    dex
-    bpl continue
-    ldx #color_list.size()
-continue:
-    dey
-    bpl !repeat-
-*/
-
     jsr wait_frame
 
     // Check for spacebar
@@ -100,12 +123,11 @@ nothing_pressed:
     rts
 }
 
-_message: .text message
-/*
-colors:
-.for (var i = 0; i < color_list.size(); i++) {
-    .byte color_list.get(i)
+_intro: .text intro
+_title: .text title
+_colors:
+.for (var i = 0; i < colors_list.size(); i++) {
+    .byte colors_list.get(i)
 }
-*/
 
 }  // End namespace
