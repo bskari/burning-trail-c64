@@ -8,41 +8,47 @@ sources = \
   ;
 
 .PHONY: all
-all: src/main/main.prg #src/test/test.prg
+all: main.prg #src/test/test.prg
 
-src/main/main.prg: $(sources)
+main.prg: $(sources)
 	java -jar $$HOME/Documents/kick-ass/KickAss.jar src/main/main.asm
-	ls -l src/main/main.prg
+	mv src/main/main.prg main.prg
+	mv src/main/main.sym main.sym
+	ls -l main.prg
 
-run: src/main/main.prg
-	x64 src/main/main.prg
+run: main.prg
+	x64 main.prg
 
-src/test/test.prg: $(sources)
+test.prg: $(sources)
 	java -jar $$HOME/Documents/kick-ass/KickAss.jar src/test/test.asm
+	mv src/test/test.prg test.prg
+	mv src/test/test.sym test.sym
 
-test: src/test/test.prg
+test: test.prg
 
-runtest: src/test/test.prg
-	x64 src/test/test.prg
+runtest: test.prg
+	x64 test.prg
 
-src/main/main.vs: $(sources)
+main.vs: $(sources)
 	java -jar $$HOME/Documents/kick-ass/KickAss.jar -vicesymbols src/main/main.asm
+	mv src/main/main.vs main.vs
 
-debug: src/main/main.prg src/main/main.vs
+debug: main.prg main.vs
 
-rundebug: src/main/main.prg src/main/main.vs
-	echo 'll "src/main/main.vs"' > debug-commands.txt
-	x64 -moncommands debug-commands.txt src/main/main.prg
+rundebug: main.prg main.vs
+	echo 'll "main.vs"' > debug-commands.txt
+	x64 -moncommands debug-commands.txt main.prg
 
-src/test/test.vs:
-	java -jar $$HOME/Documents/kick-ass/KickAss.jar -vicesymbols src/test/test.asm
+test.vs:
+	java -jar $$HOME/Documents/kick-ass/KickAss.jar -vicesymbols test.asm
+	mv src/test/test.vs test.vs
 
-runtestdebug: src/test/test.prg src/test/test.vs
-	echo 'll "src/test/test.vs"' > debug-commands.txt
-	x64 -moncommands debug-commands.txt src/test/test.prg
+runtestdebug: test.prg test.vs
+	echo 'll "test.vs"' > debug-commands.txt
+	x64 -moncommands debug-commands.txt test.prg
 
 .PHONY: clean
 clean:
-	find src -name '*.sym' -delete
-	find src -name '*.prg' -delete
-	rm -f src/main/main.vs src/test/test.vs
+	find . -name '*.sym' -delete
+	find . -name '*.prg' -delete
+	rm -f main.vs test.vs
