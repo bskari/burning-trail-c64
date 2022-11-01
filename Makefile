@@ -7,11 +7,14 @@ sources = \
   graphics/Sprites.raw \
   ;
 
+# Set this to where your KickAss.jar is located
+kickassJar = "$$HOME/Documents/kick-ass/KickAss.jar"
+
 .PHONY: all
 all: main.prg #src/test/test.prg
 
 main.prg: $(sources)
-	java -jar $$HOME/Documents/kick-ass/KickAss.jar src/main/main.asm
+	java -jar $(kickassJar) src/main/main.asm
 	mv src/main/main.prg main.prg
 	mv src/main/main.sym main.sym
 	ls -l main.prg
@@ -20,7 +23,7 @@ run: main.prg
 	x64 main.prg
 
 test.prg: $(sources)
-	java -jar $$HOME/Documents/kick-ass/KickAss.jar src/test/test.asm
+	java -jar $(kickassJar) src/test/test.asm
 	mv src/test/test.prg test.prg
 	mv src/test/test.sym test.sym
 
@@ -30,7 +33,7 @@ runtest: test.prg
 	x64 test.prg
 
 main.vs: $(sources)
-	java -jar $$HOME/Documents/kick-ass/KickAss.jar -vicesymbols src/main/main.asm
+	java -jar $(kickassJar) -vicesymbols src/main/main.asm
 	mv src/main/main.vs main.vs
 
 debug: main.prg main.vs
@@ -40,7 +43,7 @@ rundebug: main.prg main.vs
 	x64 -moncommands debug-commands.txt main.prg
 
 test.vs:
-	java -jar $$HOME/Documents/kick-ass/KickAss.jar -vicesymbols test.asm
+	java -jar $(kickassJar) -vicesymbols test.asm
 	mv src/test/test.vs test.vs
 
 runtestdebug: test.prg test.vs
