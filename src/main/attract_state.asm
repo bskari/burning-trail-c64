@@ -4,12 +4,12 @@
 // **** Constants ****
 .const intro = "bs presents..."
 .const title = "burning man: gate road"
-.var colors_list = List().add(BLACK, GREY, WHITE, GREY, BLACK)
 .const middle_offset = X_CHARS * (Y_CHARS / 2) - intro.size()
 .const offset = X_CHARS * (Y_CHARS - 2)
 .const state = $20
 .const timer = $21
 .const color_index = $22
+.const reveal_sprite_x = $23
 
 // **** Subroutines ****
 
@@ -18,19 +18,24 @@ initialize: {
     lda #0
     sta state
     sta color_index
-    lda #50
-    sta timer
+    lda #30
+    sta reveal_sprite_x
 
-    //// TODO Remove this testing code
-    //lda #1
-    //sta timer
-    //lda #colors_list.size() - 1
-    //sta color_index
+    lda #BLACK
+    sta sprite_color(0)
+    lda #(SPRITE_DATA / 64 + 9)  // Fade sprite
+    sta SPRITE_POINTER_BASE
+    lda #140
+    sta sprite_y(0)
+    lda SPRITE_ENABLE
+    ora #%0000_0001
+    sta SPRITE_ENABLE
 
     ldx #intro.size() - 1
 repeat:
     lda _intro, x
     sta DEFAULT_SCREEN_MEMORY + middle_offset + intro.size() / 2, x
+    // Keep the colors black for now
     lda #BLACK
     sta CHAR_0_COLOR + middle_offset + intro.size() / 2, x
     dex
@@ -43,28 +48,49 @@ repeat:
 tick: {
     lda state
     bne scroll
-    dec timer
-    bmi continue
-    rts
+    cmp #1
+    beq tick_fade_presents
+    jmp tick_presents
+scroll:
+    jmp scroll
+}
+
+tick_presents: {
+    lda reveal_sprite_x
+    cmp #250
+    bne continue
+    inc state
 continue:
-    // Reset timer
-    lda #50
-    sta timer
-    // Next color
-    inc color_index
-    ldx color_index
-    cpx #colors_list.size()
-    bcs next_state
-    lda _colors, x
-    ldx #intro.size() - 1
-!repeat:
+    clc
+    adc #2
+    sta reveal_sprite_x
+    sta sprite_x(0)
+
+    // Reveal any letters
+    lsr
+    lsr
+    lsr
+    sec
+    sbc #14
+    tax
+    lda #WHITE
     sta CHAR_0_COLOR + middle_offset + intro.size() / 2, x
-    dex
-    bpl !repeat-
+
+    clc
+    rts
+
+reveal_letter:
+    lda reveal_sprite_x
+    cmp #240
+    beq next_state
+
     clc
     rts
 
 next_state:
+    lda #0
+    sta SPRITE_ENABLE
+
     inc state
     jsr clear_screen
     lda #WHITE
@@ -77,8 +103,12 @@ next_state:
     bpl !repeat-
     clc
     rts
+}
 
-scroll:
+tick_fade_presents: {
+                    }
+
+tick_scroll: {
     // Horizontal scroll
     lda SCREEN_CONTROL_2
     and #%0000_0111
@@ -125,9 +155,5 @@ nothing_pressed:
 
 _intro: .text intro
 _title: .text title
-_colors:
-.for (var i = 0; i < colors_list.size(); i++) {
-    .byte colors_list.get(i)
-}
 
 }  // End namespace

@@ -112,14 +112,14 @@
 .const SPRITE_EXTRA_COLOR_2 = $D026  // 53286 multicolor mode
 .const SPRITE_0_COLOR = $D027  // 53287
 .function sprite_color(sprite_number) {
-    .if (sprite_number < 8) {
+    .if (sprite_number >= 0 && sprite_number < 8) {
         .return SPRITE_0_COLOR + sprite_number
     }
     .assert "Bad sprite number", 0, 1
 }
 .const CHAR_0_COLOR = $D800  // 55296
 .function char_color(char_number) {
-    .if (char_number < X_CHARS * Y_CHARS) {
+    .if (char_number >= 0 && char_number < X_CHARS * Y_CHARS) {
         .return CHAR_0_COLOR + char_number
     }
     .assert "Bad char number", 0, 1
