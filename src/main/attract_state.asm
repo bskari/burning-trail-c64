@@ -4,6 +4,7 @@
 // **** Constants ****
 .const intro = "bs presents..."
 .const title = "burning man: gate road"
+.const colors = List().add(GRAY, DARK_GRAY, BLACK)
 .const middle_offset = X_CHARS * (Y_CHARS / 2) - intro.size()
 .const offset = X_CHARS * (Y_CHARS - 2)
 .const state = $20
@@ -18,7 +19,7 @@ initialize: {
     lda #0
     sta state
     sta color_index
-    lda #30
+    lda #50
     sta reveal_sprite_x
 
     lda #BLACK
@@ -31,13 +32,14 @@ initialize: {
     ora #%0000_0001
     sta SPRITE_ENABLE
 
+    // Keep everything black for now
+    lda #BLACK
+    jsr set_screen_color
+
     ldx #intro.size() - 1
 repeat:
     lda _intro, x
     sta DEFAULT_SCREEN_MEMORY + middle_offset + intro.size() / 2, x
-    // Keep the colors black for now
-    lda #BLACK
-    sta CHAR_0_COLOR + middle_offset + intro.size() / 2, x
     dex
     bpl repeat
 
@@ -46,21 +48,26 @@ repeat:
 }
 
 tick: {
+    // switch (state) {
+    //  case 0: tick_reveal_presents(); break;
+    //  case 1: tick_fade_presents(); break;
+    //  case 2: tick_reveal_presents(); break;
     lda state
-    bne scroll
+    beq tick_reveal_presents
     cmp #1
-    beq tick_fade_presents
-    jmp tick_presents
-scroll:
-    jmp scroll
+    beq call_fade_presents
+    jmp tick_scroll
+call_fade_presents:
+    jmp tick_fade_presents
 }
 
-tick_presents: {
+tick_reveal_presents: {
     lda reveal_sprite_x
     cmp #250
-    bne continue
-    inc state
+    bcs next_state
 continue:
+    // This clc is unnecessary because we fall through from above, but for
+    // defensive programming, keep it in
     clc
     adc #2
     sta reveal_sprite_x
@@ -79,34 +86,53 @@ continue:
     clc
     rts
 
-reveal_letter:
-    lda reveal_sprite_x
-    cmp #240
-    beq next_state
-
-    clc
-    rts
-
 next_state:
+    inc state
+
     lda #0
     sta SPRITE_ENABLE
 
-    inc state
-    jsr clear_screen
-    lda #WHITE
+    lda #30
+    sta timer
+
+    clc
+    rts
+}
+
+
+tick_fade_presents: {
+    dec timer
+    bne return
+
+    lda #30
+    sta timer
+
+    ldx color_index
+    cpx #colors.size()
+    beq next_state
+    inc color_index
+    lda _colors, x
     jsr set_screen_color
+    jmp return
+
+next_state:
+    inc state
+
+    jsr clear_screen
     ldx #title.size() - 1
 !repeat:
     lda _title, x
     sta DEFAULT_SCREEN_MEMORY + offset, x
     dex
     bpl !repeat-
+
+    lda #WHITE
+    jsr set_screen_color
+
+return:
     clc
     rts
 }
-
-tick_fade_presents: {
-                    }
 
 tick_scroll: {
     // Horizontal scroll
@@ -155,5 +181,9 @@ nothing_pressed:
 
 _intro: .text intro
 _title: .text title
+_colors:
+.for (var i = 0; i < colors.size(); i++) {
+    .byte colors.get(i)
+}
 
 }  // End namespace
