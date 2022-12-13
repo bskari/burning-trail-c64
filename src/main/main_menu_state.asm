@@ -46,7 +46,7 @@ tick: {
     bne still_main_menu
     // Transition to state RunGame
     lda #GameState_RunGame
-    sec
+    :assert_cs()
     rts
 
 still_main_menu:
@@ -86,7 +86,7 @@ check_next:
 
     // Something was pressed!
     lda _states, y
-    sec
+    :assert_cs()
     rts
 
 nothing_pressed:
@@ -121,7 +121,7 @@ check_next:
     lda _player_types, y
     sta GameState.player_type
     lda #State_Shop
-    sec
+    :assert_cs()
     rts
 
 nothing_pressed:
@@ -155,7 +155,7 @@ check_next:
     lda _departure_hours, y
     sta GameState.time_hours
     lda #State_ExitMenu
-    sec
+    :assert_cs()
     rts
 
 nothing_pressed:

@@ -500,6 +500,7 @@ before_sunday:
     pha
     txa
     // Carry should be clear
+    :assert_cc()
     adc #'0'
     iny
     sta (ZEROPAGE_POINTER_1), y

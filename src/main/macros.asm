@@ -38,6 +38,22 @@
     }
 }
 
+// Assert that carry is clear
+.macro assert_cc() {
+    bcc !cc+
+    .break
+    clc
+!cc:
+}
+
+// Assert that carry is set
+.macro assert_cs() {
+    bcs !cs+
+    .break
+    sec
+!cs:
+}
+
 // I guess KickAss doesn't support modulo?
 .function mod(a, b) {
     .var dividend = 0

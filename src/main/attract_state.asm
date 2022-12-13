@@ -66,9 +66,7 @@ tick_reveal_presents: {
     cmp #250
     bcs next_state
 continue:
-    // This clc is unnecessary because we fall through from above, but for
-    // defensive programming, keep it in
-    clc
+    :assert_cc()
     adc #2
     sta reveal_sprite_x
     sta sprite_x(0)
@@ -95,6 +93,7 @@ next_state:
     lda #30
     sta timer
 
+    :assert_cs()
     clc
     rts
 }
@@ -229,9 +228,7 @@ no_adjust:
     rts
 
 nothing_pressed:
-    // This clc is unnecessary since we only jump here from bcc, but for
-    // defensive programming, keep it in
-    clc
+    :assert_cc()
     rts
 }
 
