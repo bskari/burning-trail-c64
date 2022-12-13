@@ -194,16 +194,16 @@ jump_engine: {
     asl          // shift bit from contents of A
     tay
     pla          // pull saved return address from stack
-    sta $04      // save to indirect
+    sta $F4      // save to indirect
     pla
-    sta $05
+    sta $F5
     iny
-    lda ($04),y  // load pointer from indirect
-    sta $06      // note that if an RTS is performed in next routine
+    lda ($F4),y  // load pointer from indirect
+    sta $F6      // note that if an RTS is performed in next routine
     iny          // it will return to the execution before the sub
-    lda ($04),y  // that called this routine
-    sta $07
-    jmp ($06)    // jump to the address we loaded
+    lda ($F4),y  // that called this routine
+    sta $F7
+    jmp ($F6)    // jump to the address we loaded
 }
 
 /*
