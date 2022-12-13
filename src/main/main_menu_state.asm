@@ -205,6 +205,9 @@ _initialize_you_may: {
     .var line_2 = "2. learn about burning man"
     .var line_3 = "3. learn about the gate"
 
+    lda #%0000_0000
+    sta SPRITE_ENABLE
+
     jsr clear_screen
     :draw_string(5, 10, you_may, _you_may)
     :draw_string(7, 12, line_1, _line_1)

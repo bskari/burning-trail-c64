@@ -11,6 +11,7 @@
 .const timer = $21
 .const color_index = $22
 .const reveal_sprite_x = $23
+.const man_sprite_y = $23
 
 // **** Subroutines ****
 
@@ -43,7 +44,6 @@ repeat:
     dex
     bpl repeat
 
-    // TODO: load the sprite graphics for the man?
     rts
 }
 
@@ -118,6 +118,42 @@ tick_fade_presents: {
 next_state:
     inc state
 
+    // Colors for the man
+    lda #LIGHT_RED
+    sta SPRITE_EXTRA_COLOR_1
+    lda #BROWN
+    sta SPRITE_EXTRA_COLOR_2
+    lda #YELLOW
+    sta SPRITE_0_COLOR + 0
+    sta SPRITE_0_COLOR + 1
+    sta SPRITE_0_COLOR + 2
+
+    // Sprite setup for the man
+    lda #(SPRITE_DATA / 64 + 10)  // Head
+    sta SPRITE_POINTER_BASE
+    lda #(SPRITE_DATA / 64 + 11)  // Body
+    sta SPRITE_POINTER_BASE + 1
+    lda #(SPRITE_DATA / 64 + 12)  // Legs
+    sta SPRITE_POINTER_BASE + 2
+
+    lda #%0000_0111
+    sta SPRITE_DOUBLE_WIDTH
+    sta SPRITE_DOUBLE_HEIGHT
+
+    lda #%0000_0111
+    sta SPRITE_ENABLE
+    sta SPRITE_PRIORITY
+
+    lda #160
+    sta sprite_x(0)
+    sta sprite_x(1)
+    sta sprite_x(2)
+    lda #255
+    sta man_sprite_y
+    sta sprite_y(0)
+    sta sprite_y(1)
+    sta sprite_y(2)
+
     jsr clear_screen
     ldx #title.size() - 1
 !repeat:
@@ -135,6 +171,26 @@ return:
 }
 
 tick_scroll: {
+.const sprite_height = 21
+    // Move the man up until... TODO
+    lda man_sprite_y
+    cmp #70
+    bcc done_moving_man
+    dec man_sprite_y
+    // Head
+    sta sprite_y(0)
+    clc
+    adc #sprite_height * 2
+    cmp man_sprite_y
+    bcc done_moving_man
+    sta sprite_y(1)
+    clc
+    adc #sprite_height * 2
+    cmp man_sprite_y
+    bcc done_moving_man
+    sta sprite_y(2)
+done_moving_man:
+
     // Horizontal scroll
     lda SCREEN_CONTROL_2
     and #%0000_0111

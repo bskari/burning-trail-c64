@@ -143,19 +143,6 @@ done:
     // Set some default colors
     lda #BLACK
     sta BACKGROUND_COLOR
-    lda #LIGHT_GRAY
-    sta SPRITE_EXTRA_COLOR_1
-    lda #WHITE
-    sta SPRITE_EXTRA_COLOR_2
-    lda #GREEN
-    sta SPRITE_0_COLOR + 0
-    sta SPRITE_0_COLOR + 1
-    lda #YELLOW
-    sta SPRITE_0_COLOR + 2
-    sta SPRITE_0_COLOR + 3
-    lda #BLUE
-    sta SPRITE_0_COLOR + 4
-    sta SPRITE_0_COLOR + 5
 }
 
 .macro copy_character_rom() {

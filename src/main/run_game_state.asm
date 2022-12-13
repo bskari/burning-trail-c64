@@ -111,8 +111,27 @@ initialize: {
     // **** Set up the sprites ****
 
     lda SPRITE_ENABLE
-    ora #%00000011
+    ora #%0000_0011
     sta SPRITE_ENABLE
+
+    lda #%0000_0000
+    sta SPRITE_DOUBLE_WIDTH
+    sta SPRITE_DOUBLE_HEIGHT
+
+    // Colors for the sprites
+    lda #LIGHT_GRAY
+    sta SPRITE_EXTRA_COLOR_1
+    lda #WHITE
+    sta SPRITE_EXTRA_COLOR_2
+    lda #GREEN
+    sta SPRITE_0_COLOR + 0
+    sta SPRITE_0_COLOR + 1
+    lda #YELLOW
+    sta SPRITE_0_COLOR + 2
+    sta SPRITE_0_COLOR + 3
+    lda #BLUE
+    sta SPRITE_0_COLOR + 4
+    sta SPRITE_0_COLOR + 5
 
     // Road sign
     lda #80
