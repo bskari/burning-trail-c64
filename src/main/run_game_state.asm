@@ -211,7 +211,7 @@ tick: {
     lda _size_up_the_situation
     beq return
     lda #GameState_SizeUp
-    sec // Carry indicates a state change to whatever's in A
+    :assert_cs() // Carry indicates a state change to whatever's in A
     rts
 
 return:
@@ -435,7 +435,7 @@ draw_information: {
     bcc before_monday
     :draw_string_zeropage_pointer_1(monday, _monday)
     lda GameState.time_hours
-    // Carry should be set
+    :assert_cs()
     sbc #48
     jmp !done+
 before_monday:
@@ -443,7 +443,7 @@ before_monday:
     bcc before_sunday
     :draw_string_zeropage_pointer_1(sunday, _sunday)
     lda GameState.time_hours
-    // Carry should be set
+    :assert_cs()
     sbc #24
     jmp !done+
 before_sunday:
@@ -455,13 +455,13 @@ before_sunday:
     cmp #20
     bcc !under_20+
     ldx #'2'
-    // Carry should be set
+    :assert_cs()
     sbc #20
     jmp !done+
 !under_20:
     cmp #10
     bcc !under_10+
-    // Carry should be set
+    :assert_cs()
     sbc #10
     ldx #'1'
     jmp !done+
@@ -499,7 +499,6 @@ before_sunday:
 !under_10:
     pha
     txa
-    // Carry should be clear
     :assert_cc()
     adc #'0'
     iny
@@ -514,7 +513,7 @@ before_sunday:
 
     // ***** Show the weather *****
     lda ZEROPAGE_POINTER_1
-    // Carry should be clear
+    :assert_cc()
     adc #40
     sta ZEROPAGE_POINTER_1
     bcc !no_carry+
@@ -568,21 +567,21 @@ done:
 !over_10:
     cmp #10
     bcc !under_10+
-    // Carry should be set
+    :assert_cs()
     sbc #10
     inx
     jmp !over_10-
 !under_10:
     pha
     txa
-    // Carry should be clear
+    :assert_cc()
     adc #'0'
     ldy #0
     sta (ZEROPAGE_POINTER_1), y
     pla
 
     // a should now have miles % 10
-    // Carry should be clear
+    :assert_cc()
     adc #'0'
     iny
     sta (ZEROPAGE_POINTER_1), y
@@ -610,7 +609,7 @@ done:
     // The max here is 115 miles
     cmp #100
     bcc !under_100+
-    // Carry should be set
+    :assert_cs()
     sbc #100
     ldx #'1'
     jmp !next+
@@ -627,21 +626,21 @@ done:
 !over_10:
     cmp #10
     bcc !under_10+
-    // Carry should be set
+    :assert_cs()
     sbc #10
     inx
     jmp !over_10-
 !under_10:
     pha
     txa
-    // Carry should be clear
+    :assert_cc()
     adc #'0'
     ldy #1
     sta (ZEROPAGE_POINTER_1), y
     pla
 
     // a should now have miles % 10
-    // Carry should be clear
+    :assert_cc()
     adc #'0'
     ldy #2
     sta (ZEROPAGE_POINTER_1), y
@@ -859,7 +858,7 @@ _update_state: {
     bcs not_highway
     // Speed limit is 65 MPH, so just round down and call it 60 MPH
     lda _miles_travelled
-    // Carry is already clear
+    :assert_cc()
     adc #minutes_increment
     jmp check_next_landmark
 not_highway:
