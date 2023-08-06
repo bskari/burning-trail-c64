@@ -4,7 +4,8 @@ An Oregon Trail spoof for the Commodore 64.
 
 ## Compiling
 
-Use CharPad Pro to convert graphics/sprites.spd to graphics/Sprites.raw.
+Use CharPad Pro to convert graphics/sprites.spd to graphics/sprites.bin.
+Export as raw binary with no extra color attribute stuff.
 
 I use the Kickass 6502 compiler. Download the jar and put it somewhere. Edit
 the Makefile and set "kickassJar" appropriately. Run `make`.

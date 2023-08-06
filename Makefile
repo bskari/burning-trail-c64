@@ -4,7 +4,7 @@
 # fast though, so just put them all together.
 sources = \
   src/main/*.asm \
-  graphics/Sprites.raw \
+  graphics/sprites.bin \
   ;
 
 # Set this to where your KickAss.jar is located
@@ -20,7 +20,7 @@ main.prg: $(sources)
 	ls -l main.prg
 
 run: main.prg
-	x64 main.prg
+	x64 -autostartprgmode 1 main.prg
 
 test.prg: $(sources)
 	java -jar $(kickassJar) src/test/test.asm

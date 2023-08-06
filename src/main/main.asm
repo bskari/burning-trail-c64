@@ -182,4 +182,4 @@ dummy_irq_handler: {
 
 *=SPRITE_DATA "sprite data"
 my_assert(mod(SPRITE_DATA, 64) == 0, "Bad SPRITE_DATA boundary")
-.import binary "graphics/Sprites.raw"
+.import binary "graphics/sprites.bin"
